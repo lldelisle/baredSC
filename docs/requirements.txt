@@ -1,0 +1,10 @@
+--extra-index-url https://obswww.unige.ch/~delisle
+numpy >=1.16
+matplotlib >=3.1.1
+pandas >=0.25.0
+scipy >=1.3.0
+corner >=2.0.0
+samsam
+sphinx-argparse
+sphinx-autorun
+IPython

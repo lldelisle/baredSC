@@ -1,0 +1,26 @@
+# vscode
+.vscode
+
+# JBD dep
+baredSC/covarianceImportanceSampling.py
+baredSC/acf.py
+baredSC/logpriors.py
+baredSC/scaledAdaptiveMetropolis.py
+
+# pycache
+baredSC/__pycache__
+baredSC/lib/__pycache__
+
+# build
+build
+
+# egg-info
+baredSC.egg-info
+
+# sphinx
+docs/_build
+# Files for doc
+docs/savefig
+
+# Big files
+example/*.npz
