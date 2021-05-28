@@ -7,7 +7,7 @@ import time
 from tempfile import NamedTemporaryFile
 
 # Local imports
-from . common import get_data, get_bins_centers
+from . common import get_data_txt, get_data_annData, get_bins_centers
 from . oned import logprob, extract_from_npz, write_evidence, \
     get_pdf, plots_from_pdf
 from baredSC._version import __version__
@@ -86,11 +86,14 @@ def parse_arguments(args=None):
   argpopt_plot = argp.add_argument_group('Optional arguments to customize plots and text outputs')
   argpopt_loge = argp.add_argument_group('Optional arguments to evaluate logevidence')
   # Get data:
-  argprequired.add_argument('--input', default=None, required=True,
-                            help="Input table with one line per cell"
-                            " columns with raw counts and one column"
-                            " nCount_RNA with total number of UMI per cell"
-                            " optionally other meta data to filter.")
+  group = argprequired.add_mutually_exclusive_group(required=True)
+  group.add_argument('--input', default=None,
+                     help="Input table with one line per cell"
+                     " columns with raw counts and one column"
+                     " nCount_RNA with total number of UMI per cell"
+                     " optionally other meta data to filter.")
+  group.add_argument('--inputAnnData', default=None,
+                     help="Input annData (for example from Scanpy).")
   argprequired.add_argument('--geneColName', default=None, required=True,
                             help="Name of the column with gene counts.")
   argpopt_data.add_argument('--metadata1ColName', default=None,
@@ -198,7 +201,14 @@ def main(args=None):
   # Load data
   print("Get raw data")
   start = time.time()
-  data = get_data(args.input,
+  if args.input is not None:
+    input = args.input
+    get_data = get_data_txt
+  else:
+    input = args.inputAnnData
+    get_data = get_data_annData
+
+  data = get_data(input,
                   args.metadata1ColName, args.metadata1Values,
                   args.metadata2ColName, args.metadata2Values,
                   args.metadata3ColName, args.metadata3Values,

@@ -4,20 +4,125 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import poisson
+from scipy.sparse import issparse
+import anndata
 from samsam import acf
 
 mpl.use('agg')
 
 
-def get_data(input_file, metadata1_cn, metadata1_v,
-             metadata2_cn, metadata2_v,
-             metadata3_cn, metadata3_v,
-             genes):
+def get_data_txt(input_file, metadata1_cn, metadata1_v,
+                 metadata2_cn, metadata2_v,
+                 metadata3_cn, metadata3_v,
+                 genes):
   """
   Create a dataframe from input file
   keep only rows matching metadata values
   """
   data = pd.read_csv(input_file, sep="\t")
+  filters = {metadata1_cn: metadata1_v,
+             metadata2_cn: metadata2_v,
+             metadata3_cn: metadata3_v}
+  for col_name in filters:
+    if col_name is None:
+      continue
+    data = data[data[col_name].astype(str).isin(filters[col_name].split(','))]
+  print(f"You have {data.shape[0]} cells.")
+  if data.shape[0] == 0:
+    raise Exception("No cell with selected filters.")
+  for col_name in genes + ['nCount_RNA']:
+    if col_name not in data.columns:
+      raise Exception(f"{col_name} not in the data table.")
+  return(data[genes + ['nCount_RNA']])
+
+
+def get_raw_mat_from_annData(adata, used_raw=False, round_threshold=0.01):
+  """
+  Retrieves the raw counts matrix from annData.
+  We expect that if log and norm were applied
+  it was applied first Norm and then Log
+  """
+  add_message = ""
+  if used_raw:
+    add_message = "in .raw"
+  # Transform sparse to array
+  if issparse(adata.X):
+    X = adata.X.toarray()
+  else:
+    X = np.copy(adata.X)
+  # Check if the data (X) are all positive (not scaled):
+  if not np.all(X >= 0):
+    raise Exception(f"Negative values found {add_message}. Cannot go back to raw counts.")
+  # Check if they are already raw_counts:
+  if np.array_equal(X, X.astype(int)):
+    return(X)
+  # Check if a log was applied
+  if 'log1p' in adata.uns:
+    base = adata.uns['log1p']['base']
+    if base is not None:
+      X *= np.log(base)
+    X = np.expm1(X)
+    add_message += " delogged"
+  # Check if normalization was done:
+  # We assume that if all values
+  # are really close to integer no norm was performed.
+  if np.max(np.abs(X - np.round(X))) < round_threshold:
+    return(np.round(X))
+  # We first check that all values are there:
+  # Try to find the target_sum:
+  N_t = np.median(X.sum(1))
+  if np.max(np.abs(X.sum(1) - N_t)) > 0.1:
+    # Maybe it was logged but the lop1p in uns has not been exported
+    X = np.expm1(X)
+    add_message += " delogged"
+    if np.max(np.abs(X - np.round(X))) < round_threshold:
+      return(np.round(X))
+    N_t = np.median(X.sum(1))
+    if np.max(np.abs(X.sum(1) - N_t)) > 0.1:
+      raise Exception("The sum of expression for each cell"
+                      f" {add_message} is not constant."
+                      " Genes are probably missing.")
+
+  # We could also check the number of genes detected with:
+  # np.array_equal(np.sum(X > 0, axis=1), adata.obs['n_genes_by_counts'])
+  if 'total_counts' not in adata.obs.keys():
+    raise Exception(f"The expression {add_message}seems normalized"
+                    " but 'total_counts' is not in obs."
+                    "Cannot get raw values.")
+  # Denormalize:
+  X = X * adata.obs['total_counts'][:, None] / N_t
+  if np.max(np.abs(X - np.round(X))) < round_threshold:
+    return(np.round(X))
+  else:
+    raise Exception(f"Could not extract raw values of expression {add_message}.")
+
+
+def get_data_annData(input_file, metadata1_cn, metadata1_v,
+                     metadata2_cn, metadata2_v,
+                     metadata3_cn, metadata3_v,
+                     genes):
+  """
+  Create a dataframe from input file
+  keep only rows matching metadata values
+  """
+  # First load the annData:
+  adata = anndata.read(input_file)
+  raw_mat = None
+  used_raw = False
+  # If a raw exists we will use it:
+  if adata.raw is not None:
+    adata = adata.raw.to_adata()
+    used_raw = True
+  raw_mat = get_raw_mat_from_annData(adata, used_raw)
+  data = pd.DataFrame(data=raw_mat,
+                      index=adata.obs_names,
+                      columns=adata.var_names)
+  data = pd.concat([data, adata.obs], axis=1)
+  if 'total_counts' in data.keys():
+    data['nCount_RNA'] = data['total_counts']
+  else:
+    data['nCount_RNA'] = raw_mat.sum(1)
+
   filters = {metadata1_cn: metadata1_v,
              metadata2_cn: metadata2_v,
              metadata3_cn: metadata3_v}
