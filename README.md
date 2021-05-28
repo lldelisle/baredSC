@@ -7,3 +7,7 @@ baredSC (Bayesian Approach to Retreive Expression Distribution of Single Cell) i
 Documentation
 -------------
 Visit [our documentation](https://baredsc.readthedocs.io) to see the possible options and follow the tutorials.
+
+Citation
+--------
+If you are using baredSC, please cite our [biorxiv paper](https://doi.org/10.1101/2021.05.26.445740).
