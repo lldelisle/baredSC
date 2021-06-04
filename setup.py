@@ -23,7 +23,8 @@ install_requires_py = ["numpy >=1.16",
                        "pandas >=0.25.0",
                        "scipy >=1.3.0",
                        "corner >=2.0.0",
-                       "samsam >=0.1.2"
+                       "samsam >=0.1.2",
+                       "anndata >=0.7"
                        ]
 
 
