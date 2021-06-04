@@ -18,6 +18,14 @@ def get_version():
   return None
 
 
+# From numpy:
+def get_docs_url():
+  # For releases, this URL ends up on pypi.
+  # By pinning the version, users looking at old PyPI releases can get
+  # to the associated docs easily.
+  return f"https://baredsc.readthedocs.io/en/v{get_version()}"
+
+
 install_requires_py = ["numpy >=1.16",
                        "matplotlib >=3.1.1",
                        "pandas >=0.25.0",
@@ -37,8 +45,11 @@ setup(
     scripts=['bin/baredSC_1d', 'bin/baredSC_2d',
              'bin/combineMultipleModels_1d',
              'bin/combineMultipleModels_2d'],
-    # TODO: url='http://baredsc.readthedocs.io',
     url='https://github.com/lldelisle/baredSC',
+    project_urls={
+        "Bug Tracker": "https://github.com/lldelisle/baredSC/issues",
+        "Documentation": get_docs_url()
+    },
     license='GPLv3',
     description='baredSC: Bayesian Approach to Retreive Expression Distribution of Single Cell',
     long_description=open('README.md').read(),
