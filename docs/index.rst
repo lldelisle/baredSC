@@ -20,6 +20,7 @@ baredSC is a tool that uses a Monte-Carlo Markov Chain to estimate a confidence 
    content/outputs.rst
    content/tutorial_sim.rst
    content/releases.rst
+   content/citation.rst
 
 Indices and tables
 ==================
