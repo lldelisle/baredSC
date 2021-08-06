@@ -27,12 +27,14 @@ Installation
 
 You can install it with pip:
 
-```
-pip install baredSC
-```
+.. code:: bash
+
+    $ pip install baredSC
+
 
 Or with conda:
 
-```
-conda create -n baredSC -c bioconda -c conda-forge baredsc
-```
+.. code:: bash
+
+    $ conda create -n baredSC -c bioconda -c conda-forge baredsc
+
