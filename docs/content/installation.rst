@@ -25,8 +25,14 @@ Dependencies of a python package from Jean-Baptiste Delisle dedicated to mcmc:
 Installation
 ------------
 
-For the moment you can install it with pip:
+You can install it with pip:
 
-pip install --extra-index-url https://obswww.unige.ch/~delisle baredSC
+```
+pip install baredSC
+```
 
-It may be accessible in conda later.
+Or with conda:
+
+```
+conda create -n baredSC -c bioconda -c conda-forge baredsc
+```

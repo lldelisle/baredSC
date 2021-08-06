@@ -1,12 +1,6 @@
 # vscode
 .vscode
 
-# JBD dep
-baredSC/covarianceImportanceSampling.py
-baredSC/acf.py
-baredSC/logpriors.py
-baredSC/scaledAdaptiveMetropolis.py
-
 # pycache
 baredSC/__pycache__
 baredSC/lib/__pycache__
