@@ -12,6 +12,7 @@ We generated a example where 2 genes have the same distribution
 (2 gaussians, one of mean 0.375, scale 0.125 and another one of mean 1 and scale 0.1).
 For each gene, half of cells goes in each gaussian.
 The genes are called "0.5_0_0_0.5_x" and "0.5_0_0_0.5_y".
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_2d_2.txt>`_.
 
 2d
 --

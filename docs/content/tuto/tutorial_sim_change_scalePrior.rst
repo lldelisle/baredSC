@@ -7,6 +7,7 @@ Change scalePrior
 baredSC_2d uses as a prior on the correlation value of each Gaussian a normal distribution.
 In order to reduce the number of false-positive (anti-)correlation detection. The scale of the normal distribution is set to 0.3.
 We show here the influence of this prior.
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_second.txt>`_.
 
 Inputs
 ------

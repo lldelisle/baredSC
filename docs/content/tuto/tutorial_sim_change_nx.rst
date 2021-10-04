@@ -12,6 +12,7 @@ Inputs
 We took total UMI counts from a real dataset of NIH3T3.
 We generated a example where the PDF of the 2 genes is a 2D Gaussian.
 The mean on each axis and the scale on each axis is equal to 0.5 and the correlation value is also 0.5.
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_second.txt>`_.
 
 Run baredSC in 2D
 -----------------
