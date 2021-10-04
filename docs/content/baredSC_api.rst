@@ -274,8 +274,8 @@ what was used for the likelihood evaluation:
        ...: ymax = y[-1] + dy / 2
        ...:
        ...: # We set pretty_bins_x and y
-       ...: pretty_bins_x = 50
-       ...: pretty_bins_y = 50
+       ...: pretty_bins_x = 40
+       ...: pretty_bins_y = 40
        ...: from baredSC.common import get_bins_centers
        ...: nx = pretty_bins_x
        ...: x = get_bins_centers(xmin, xmax, nx)
