@@ -262,9 +262,8 @@ If you want to get more bins, you just need to change x and y.
 We want to warn the user that what will be plotted will be different from 
 what was used for the likelihood evaluation:
 
-.. ipython::    
+.. code:: python
 
-    @savefig plot_from_npz2d_smooth.png
     In [1]: # We assume x and y are equally spaced
        ...: dx = x[1] - x[0]
        ...: dy = y[1] - y[0]
@@ -274,8 +273,8 @@ what was used for the likelihood evaluation:
        ...: ymax = y[-1] + dy / 2
        ...:
        ...: # We set pretty_bins_x and y
-       ...: pretty_bins_x = 40
-       ...: pretty_bins_y = 40
+       ...: pretty_bins_x = 50
+       ...: pretty_bins_y = 50
        ...: from baredSC.common import get_bins_centers
        ...: nx = pretty_bins_x
        ...: x = get_bins_centers(xmin, xmax, nx)
@@ -314,6 +313,8 @@ what was used for the likelihood evaluation:
        ...: axs[1].set_xlabel('gene_x')
        ...: axs[1].set_ylabel('gene_y')
        ...: 
+
+.. image:: ../smooth.png
 
 
 Run baredSC_2d
