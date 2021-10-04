@@ -70,8 +70,8 @@ We will use matplotlib to display the mean pdf in 2d:
        ...: ymax = y[-1] + dy / 2
        ...: y_borders = np.linspace(ymin, ymax, len(y) + 1)
        ...: plt.figure()
-       ...: plt.pcolormesh(x_borders, y_borders, pdf[1:,1:].astype('float'), shad
-       ...: ing='flat', rasterized=True, cmap='viridis')
+       ...: plt.pcolormesh(x_borders, y_borders, pdf[1:,1:].astype('float'),
+       ...:                shading='flat', rasterized=True, cmap='viridis')
        ...: plt.xlabel('log(1 + 10000 * genex)')
        ...: plt.ylabel('log(1 + 10000 * geney)')
        ...: plt.title('My title')
