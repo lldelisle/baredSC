@@ -143,7 +143,9 @@ def plot(oxpdf, x, logprob_values, samples, title, output, data, col_gene,
 def parse_arguments(args=None):
   argp = argparse.ArgumentParser(
       description=("Run mcmc to get the pdf for a given gene using a"
-                   " normal distributions."))
+                   " normal distributions. The full documentation "
+                   "is available at "
+                   "https://baredsc.readthedocs.io"))
   argprequired = argp.add_argument_group('Required arguments')
   argpopt_data = argp.add_argument_group('Optional arguments to select input data')
   argpopt_mcmc = argp.add_argument_group('Optional arguments to run MCMC')
