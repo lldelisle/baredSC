@@ -53,7 +53,7 @@ First we get the value of parameters at each step of MCMC:
        ...: nnorm = (samples.shape[1] + 1) // 3
        ...: # We display the parameter names:
        ...: p_names = [f'{pn}{i}' for i in range(nnorm) for pn in ['amp', 'mu', 'scale']][1:]
-       ...: print(p_names)
+       ...: print(f'The parameters are: {p_names}')
        ...: 
 
 Then we compute the pdf for each step of the MCMC and we plot the pdf with the custom error bars:
@@ -143,7 +143,7 @@ Then the actual MCMC can be run with:
        ...:                      T0_burn=100.0,
        ...:                      output='temp', # Where the npz output should be stored
        ...:                      seed=1)
-       ...: print(len(results))
+       ...: print(f'results contains {len(results)} items.')
        ...: # The results are:
        ...: # mu, cov, ox, oxpdf, x, logprob_values, samples
        ...: # mu is the mean of each parameter,
@@ -169,7 +169,8 @@ All the outputs are described in the :doc:`outputs` page.
 
 We provide an example of a plot using the text output ``_pdf2d.txt`` in :doc:`tuto/tutorial_sim_custom_simple_plot`.
 However, sometimes the user may want to plot information which is not part of the text outputs.
-We describe here a script which will use the baredSC_2d output to plot the mean and median on the same plot.
+We describe here a script which will use the baredSC_2d output to plot the mean and median on the same plot and
+another script which will use more bins in the output to get smoother results.
 
 First we get the value of parameters at each step of MCMC:
 
@@ -207,7 +208,7 @@ First we get the value of parameters at each step of MCMC:
        ...: p_names = [f'{pn}{i}' for i in range(nnorm)
        ...:            for pn in ['xy_amp', 'xy_mux', 'xy_muy', 'xy_scalex',
        ...:                       'xy_scaley', 'xy_corr']][1:]
-       ...: print(p_names)
+       ...: print(f'The parameters are: {p_names}')
        ...: 
 
 Then we compute the pdf for each step of the MCMC and we plot the mean and median:
@@ -244,9 +245,63 @@ Then we compute the pdf for each step of the MCMC and we plot the mean and media
        ...: 
        ...: x_borders = np.linspace(xmin, xmax, len(x) + 1)
        ...: y_borders = np.linspace(ymin, ymax, len(y) + 1)
+       ...:  
+       ...: # Plot 2 panels plot
+       ...: fig, axs = plt.subplots(1, 2, sharex='row', sharey='row')
+       ...: axs[0].pcolormesh(x_borders, y_borders, np.mean(pdf, axis=0),
+       ...:                   shading='flat', rasterized=True, cmap='Greys')
+       ...: axs[0].set_xlabel('gene_x')
+       ...: axs[0].set_ylabel('gene_y')
+       ...: axs[1].pcolormesh(x_borders, y_borders, np.median(pdf, axis=0),
+       ...:                   shading='flat', rasterized=True, cmap='Greys')
+       ...: axs[1].set_xlabel('gene_x')
+       ...: axs[1].set_ylabel('gene_y')
        ...: 
+
+If you want to get more bins, you just need to change x and y.
+We want to warn the user that what will be plotted will be different from 
+what was used for the likelihood evaluation:
+
+.. ipython::    
+
+    @savefig plot_from_npz2d_smooth.png
+    In [1]: # We assume x and y are equally spaced
+       ...: dx = x[1] - x[0]
+       ...: dy = y[1] - y[0]
        ...: xmin = x[0] - dx / 2
        ...: xmax = x[-1] + dx / 2
+       ...: ymin = y[0] - dy / 2
+       ...: ymax = y[-1] + dy / 2
+       ...:
+       ...: # We set pretty_bins_x and y
+       ...: pretty_bins_x = 50
+       ...: pretty_bins_y = 50
+       ...: from baredSC.common import get_bins_centers
+       ...: nx = pretty_bins_x
+       ...: x = get_bins_centers(xmin, xmax, nx)
+       ...: dx = x[1] - x[0]
+       ...: noxpdf = nx
+       ...: oxpdf = x
+       ...: odxpdf = dx
+       ...: ny = pretty_bins_y
+       ...: y = get_bins_centers(ymin, ymax, ny)
+       ...: dy = y[1] - y[0]
+       ...: noypdf = ny
+       ...: oypdf = y
+       ...: odypdf = dy
+       ...: 
+       ...: odxypdf = odxpdf * odypdf
+       ...: oxypdf = np.array(np.meshgrid(oxpdf, oypdf)).transpose(1, 2, 0)
+       ...: 
+       ...: # Compute the pdf for each sample
+       ...: # This can be long
+       ...: pdf = np.array([baredSC.twod.get_pdf(p, nx, ny, noxpdf,
+       ...:                                      noypdf, oxypdf, odxypdf)
+       ...:                 for p in samples])
+       ...: # We plot:
+       ...: x_borders = np.linspace(xmin, xmax, len(x) + 1)
+       ...: y_borders = np.linspace(ymin, ymax, len(y) + 1)
+       ...: 
        ...: 
        ...: # Plot 2 panels plot
        ...: fig, axs = plt.subplots(1, 2, sharex='row', sharey='row')
@@ -259,6 +314,7 @@ Then we compute the pdf for each step of the MCMC and we plot the mean and media
        ...: axs[1].set_xlabel('gene_x')
        ...: axs[1].set_ylabel('gene_y')
        ...: 
+
 
 Run baredSC_2d
 ^^^^^^^^^^^^^^
@@ -348,7 +404,7 @@ Then the actual MCMC can be run with:
        ...:                      T0_burn=100.0,
        ...:                      output='temp', # Where the npz output should be stored
        ...:                      seed=1)
-       ...: print(len(results))
+       ...: print(f'results contains {len(results)} items.')
        ...: # The results are:
        ...: # mu, cov, ox, oy, oxpdf, oypdf, x, y, \
        ...: #   logprob_values, samples 
