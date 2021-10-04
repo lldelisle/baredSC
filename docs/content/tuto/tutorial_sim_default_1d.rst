@@ -15,6 +15,7 @@ We took total UMI counts from a real dataset of NIH3T3.
 We generated a example where 2 genes have the same distribution (2 gaussians, one of mean 0.375, scale 0.125 and another one of mean 1 and scale 0.1).
 Half of cells goes in each gaussian.
 The gene is called "0.5_0_0_0.5_x".
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_2d_2.txt>`_.
 
 Run
 ---
@@ -44,7 +45,7 @@ We first check the convergence:
 .. image:: ../../../example/first_example_1d_1gauss_convergence.png
 
 This plot show the autocorrelation as a function of number of samples.
-The earlier the curves goes close to 0, the more it convereged.
+The earlier the curves goes close to 0, the more it converged.
 
 Here, this is perfect.
 

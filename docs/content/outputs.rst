@@ -12,6 +12,10 @@ MCMC output
 The only output by defaut is a numpy compressed ``.npz`` file. This output contains the result of the MCMC:
 
 * samples: the value of the parameter at each step of the MCMC
+
+  * In the 1d case, the parameters are mu0, scale0, (amp1, mu1, scale1, ...). The first amplitude can be deduced as 1 minus the sum of all other amplitudes.
+  * In the 2d case, the parameters are mux0, scalex0, muy0, scaley0, corr0, (amp1, mux1, scalex1, muy1, scaley1, corr1, ..). The first amplitude can be deduced as 1 minus the sum of all other amplitudes.
+
 * diagnostics: a dictionary with the diagnostics at each step of the MCMC, among them:
 
   * logprob: the log probability at each step of the MCMC
@@ -59,7 +63,7 @@ name.extension
 
 This is the figure with the results. 
 
-- When the 1d version is used, it displays the mean pdf in solid red line, the median in black dashed lines (/!\ the integral of the median is not equal to 1) with the confidence interval of 1 sigma (68%), 2 sigma (95%) and 3 sigma (99.7%) as well as in green, the kernel density estimate of the input values, the detected expression (``log(1 + 10^4 * raw / total UMI)``).
+- When the 1d version is used, it displays the mean pdf in solid red line, the median in black dashed lines (/!\backslash the integral of the median is not equal to 1) with the confidence interval of 1 sigma (68%), 2 sigma (95%) and 3 sigma (99.7%) as well as in green, the kernel density estimate of the input values, the detected expression (``log(1 + 10^4 * raw / total UMI)``).
 
 - When the 2d version is used, it displays the pdf as a heatmap as well as a projection on the x and y axis. On the projection, the confidence interval 68% is indicated as a shaded area as well as the mean with a solid red line and the median with a dashed black line. On the top right corner, the correlation is indicated with the confidence interval 68% as well as a confidence interval on the one-sided p-value (the probability that the correlation is the opposite sign of the mean, one sigma confidence interval).
 

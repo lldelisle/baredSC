@@ -231,7 +231,9 @@ def plot(oxpdf, oypdf, x, y, logprob_values, samples,
 def parse_arguments(args=None):
   argp = argparse.ArgumentParser(
       description=("Run mcmc to get the pdf in 2D for 2 given genes using a"
-                   " normal distributions."))
+                   " normal distributions. The full documentation "
+                   "is available at "
+                   "https://baredsc.readthedocs.io"))
   argprequired = argp.add_argument_group('Required arguments')
   argpopt_data = argp.add_argument_group('Optional arguments to select input data')
   argpopt_mcmc = argp.add_argument_group('Optional arguments to run MCMC')
@@ -240,7 +242,8 @@ def parse_arguments(args=None):
   # To get the data
   group = argprequired.add_mutually_exclusive_group(required=True)
   group.add_argument('--input', default=None,
-                     help="Input table with one line per cell"
+                     help="Input table (tabular separated"
+                     " with header) with one line per cell"
                      " columns with raw counts and one column"
                      " nCount_RNA with total number of UMI per cell"
                      " optionally other meta data to filter.")
@@ -253,15 +256,15 @@ def parse_arguments(args=None):
   argpopt_data.add_argument('--metadata1ColName', default=None,
                             help="Name of the column with metadata1 to filter.")
   argpopt_data.add_argument('--metadata1Values', default=None,
-                            help="Comma separated values for metadata1.")
+                            help="Comma separated values for metadata1 of cells to keep.")
   argpopt_data.add_argument('--metadata2ColName', default=None,
                             help="Name of the column with metadata2 to filter.")
   argpopt_data.add_argument('--metadata2Values', default=None,
-                            help="Comma separated values for metadata2.")
+                            help="Comma separated values for metadata2 of cells to keep.")
   argpopt_data.add_argument('--metadata3ColName', default=None,
                             help="Name of the column with metadata3 to filter.")
   argpopt_data.add_argument('--metadata3Values', default=None,
-                            help="Comma separated values for metadata3.")
+                            help="Comma separated values for metadata3 of cells to keep.")
   # MCMC
   argpopt_mcmc.add_argument('--xmin', default=0, type=float,
                             help="Minimum value to consider in x axis.")
@@ -323,7 +326,8 @@ def parse_arguments(args=None):
                             help="Change seed for another output.")
   argpopt_mcmc.add_argument('--minNeff', default=None, type=float,
                             help="Will redo the MCMC with 10 times more samples until "
-                            "Neff is greater that this value (Default is not set so will not rerun MCMC).")
+                            "the number of effective samples that this value "
+                            "(Default is not set so will not rerun MCMC).")
   # To save/get MCMC
   argpopt_mcmc.add_argument('--force', default=None, action='store_true',
                             help="Force to redo the mcmc even if output exists.")

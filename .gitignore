@@ -18,3 +18,4 @@ docs/savefig
 
 # Big files
 example/*.npz
+docs/*.npz
