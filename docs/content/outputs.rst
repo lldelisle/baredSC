@@ -63,7 +63,7 @@ name.extension
 
 This is the figure with the results. 
 
-- When the 1d version is used, it displays the mean pdf in solid red line, the median in black dashed lines (/!\backslash the integral of the median is not equal to 1) with the confidence interval of 1 sigma (68%), 2 sigma (95%) and 3 sigma (99.7%) as well as in green, the kernel density estimate of the input values, the detected expression (``log(1 + 10^4 * raw / total UMI)``).
+- When the 1d version is used, it displays the mean pdf in solid red line, the median in black dashed lines (/!\backslash the integral of the median is not equal to 1) with the confidence interval of 1 sigma (68%), 2 sigma (95%) and 3 sigma (99.7%) as well as in green, the kernel density estimate of the input values, the detected expression (``log(1 + targetSum * raw / total UMI)``).
 
 - When the 2d version is used, it displays the pdf as a heatmap as well as a projection on the x and y axis. On the projection, the confidence interval 68% is indicated as a shaded area as well as the mean with a solid red line and the median with a dashed black line. On the top right corner, the correlation is indicated with the confidence interval 68% as well as a confidence interval on the one-sided p-value (the probability that the correlation is the opposite sign of the mean, one sigma confidence interval).
 
@@ -90,8 +90,8 @@ name_with_posterior.extension (1d only)
 
 Same as name.extension except that a new orange line is plotted showing the posterior density evaluated as the average of the posterior density of each cell.
 
-name_posterior_per_individuals.extension (1d only)
-""""""""""""""""""""""""""""""""""""""""""""""""""
+name_posterior_individuals.extension (1d only)
+""""""""""""""""""""""""""""""""""""""""""""""
 
 Showing posterior density probability of 50 random cells.
 
@@ -102,8 +102,13 @@ For each cell of the input, providing the posterior average and standard deviati
 
 name_posterior_andco.extension (1d only)
 """"""""""""""""""""""""""""""""""""""""
+
 Showing the mean pdf, the median pdf, the density from raw counts normalized, the average of the posterior density from all cells,  the density and a histogram using only the average value of the posterior distribution of each cell and the posterior density approximating the pdf of each cell by a Gaussian using values in the "posterior_per_cell.txt" file.
 
+name_means.txt.gz (1d only)
+"""""""""""""""""""""""""""
+
+Each line correspond to the value of the mean expression evaluated at each sample of the MCMC.
 
 name_median.extension (2d only)
 """""""""""""""""""""""""""""""
