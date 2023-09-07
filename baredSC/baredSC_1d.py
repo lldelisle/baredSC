@@ -376,7 +376,7 @@ def main(args=None):
           new_args = original_args
           if '--nsampMCMC' in new_args:
             i = [i for i, v in enumerate(new_args) if v == '--nsampMCMC'][0]
-            new_args[i + 1] += '0'
+            new_args[i + 1] = f"{args.nsampMCMC}0"
           else:
             new_args.append('--nsampMCMC')
             new_args.append(f'{args.nsampMCMC}0')

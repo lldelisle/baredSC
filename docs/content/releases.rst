@@ -1,6 +1,14 @@
 Releases
 ========
 
+1.1.2
+-----
+
+Bug fix:
+^^^^^^^^
+
+- When ``--minNeff`` was set with ``--nsampMCMC``, the number of samples was not multiplied more than once by 10.
+
 1.1.1
 -----
 
