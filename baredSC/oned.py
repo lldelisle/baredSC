@@ -1,9 +1,12 @@
 # Copyright 2021 Jean-Baptiste Delisle and Lucille Delisle
+"""
+  Module with all functions common to baredSC_1d combineMultipleModels_1d
+"""
+from itertools import permutations
+import time
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from itertools import permutations
-import time
 from scipy.stats import kde
 from scipy.special import factorial
 import pandas as pd
@@ -16,28 +19,59 @@ from . common import get_Ax, get_prefix_suffix, get_bins_centers
 mpl.use('agg')
 
 
-# Define log probability function
 def logprob(p,
             pref, wdist, permutx,
-            xmin, xmax, nx, dx,
+            xmin, xmax, nx,
             noxpdf, oxpdf, odxpdf,
             min_scale,
             Ax, temp=1.0):
+  """Define log probability function
+
+  Args:
+    p (np.ndarray): Set of parameters to get logprob
+    pref (np.ndarray): Set of parameters of reference
+    wdist (np.ndarray): Weight to give to parameters in distance evaluation
+    permutx (np.ndarray): Array with all possible permutations on x
+    xmin (int): Minimum value to consider in x axis.
+    xmax (int): Maximum value to consider in x axis.
+    nx (int): Number of values in x to check how your evaluated pdf is compatible with the model.
+    noxpdf (int): Number of values in x to evaluate pdf
+    oxpdf (np.ndarray): bin centers for pdf
+    odxpdf (float): Distance between 2 bin centers in oxpdf
+    min_scale (float): Minimal value of the scale of gaussians
+    Ax (np.ndarray): Matrix with p(ki|Ni,xj) * dx
+    temp (float, optional): Temperature. Defaults to 1.0.
+
+  Returns:
+    float: Log probability
+  """
   # Log prior
-  lp = logprior(p, pref, wdist, permutx, xmin, xmax, dx, odxpdf, min_scale)
+  lp = logprior(p, pref, wdist, permutx, xmin, xmax, min_scale)
   if np.isfinite(lp):
     # If the parameters are possible
     # Log likelihood
     ll = loglike(p, nx, noxpdf, oxpdf, odxpdf, Ax)
     # Return sum of log prior and log likelihood
-    return((lp + ll) / temp)
-  else:
-    # If the parameters are impossible
-    return(-np.inf)
+    return (lp + ll) / temp
+  # If the parameters are impossible
+  return -np.inf
 
 
-# Define the log prior
-def logprior(p, pref, wdist, permutx, xmin, xmax, dx, odxpdf, min_scale):
+def logprior(p, pref, wdist, permutx, xmin, xmax, min_scale):
+  """Define the log prior
+
+  Args:
+    p (np.ndarray): Set of parameters to get logprob
+    pref (np.ndarray): Set of parameters of reference
+    wdist (np.ndarray): Weight to give to parameters in distance evaluation
+    permutx (np.ndarray): Array with all possible permutations on x
+    xmin (int): Minimum value to consider in x axis.
+    xmax (int): Maximum value to consider in x axis.
+    min_scale (float): Minimal value of the scale of gaussians
+
+  Returns:
+    float: Log prior value and -inf if it is not in prior
+  """
   # Raise exception if one of the condition is not
   # satisfied
   try:
@@ -50,7 +84,7 @@ def logprior(p, pref, wdist, permutx, xmin, xmax, dx, odxpdf, min_scale):
     # Amplitude
     # Amplitudes should be positive
     if np.any(amp_full < 0):
-      raise Exception('Negative amplitude')
+      raise ValueError('Negative amplitude')
     # Because we impose that sum of amplitude is below 1
     # We add this term:
     lp = np.log(factorial(amp.size))
@@ -63,31 +97,55 @@ def logprior(p, pref, wdist, permutx, xmin, xmax, dx, odxpdf, min_scale):
       dpk = p_full[ks][1:] - pref
       distk = np.sum(wdist * dpk * dpk)
       if distk <= dist:
-        raise Exception('Swapping')
+        raise ValueError('Swapping')
     # Number of possible swappings
     lp += np.log(permutx.shape[0])
     # Finally we add the priors on other parameters
     # Location
-    lp += sum(samsam.logprior.uniform(muk, xmin - 3 * sigk, xmax + 3 * sigk) for muk, sigk in zip(mu, sig))
+    lp += sum(samsam.logprior.uniform(muk, xmin - 3 * sigk, xmax + 3 * sigk)
+              for muk, sigk in zip(mu, sig))
     # Scale
-    lp += sum(samsam.logprior.loguniform(sigk, np.log(min_scale), np.log(xmax - xmin)) for sigk in sig)
-  except:
-    return(-np.inf)
-  return(lp)
+    lp += sum(samsam.logprior.loguniform(sigk, np.log(min_scale), np.log(xmax - xmin))
+              for sigk in sig)
+  except Exception:  # pylint: disable=W0718
+    return -np.inf
+  return lp
 
 
-# pdf of a trunc_norm as scipy.stats.truncnorm.pdf is very slow
 def trunc_norm(x, dx, mu, sigma):
+  """pdf of a trunc_norm as scipy.stats.truncnorm.pdf is very slow
+
+  Args:
+      x (np.ndarray): Regular grid where pdf should be evaluated
+      dx (float): Space between 2 values in x
+      mu (float): Mean of Gaussian
+      sigma (float): Scale of Gaussian
+
+  Returns:
+      np.ndarray: pdf values normalized
+  """
   u = (x - mu) / sigma
   lognorm = -0.5 * u * u
   lognorm -= np.max(lognorm)  # Avoid underflow
   norm = np.exp(lognorm)
   norm /= np.sum(norm * dx)
-  return(norm)
+  return norm
 
 
-# Log likelihood
 def loglike(p, nx, noxpdf, oxpdf, odxpdf, Ax):
+  """Log likelihood
+
+  Args:
+    p (np.ndarray): Set of parameters to get loglikelihood
+    nx (int): Number of values in x to check how your evaluated pdf is compatible with the model.
+    noxpdf (int): Number of values in x to evaluate pdf
+    oxpdf (np.ndarray): bin centers for pdf
+    odxpdf (float): Distance between 2 bin centers in oxpdf
+    Ax (np.ndarray): Matrix with p(ki|Ni,xj) * dx
+  
+  Returns:
+    float: Log likelihood
+  """
   # Get the pdf from p:
   pdf = get_pdf(p, nx, noxpdf, oxpdf, odxpdf)
   # The likelihood for a cell i is
@@ -98,11 +156,22 @@ def loglike(p, nx, noxpdf, oxpdf, odxpdf, Ax):
   # The log likelihood for all cells is
   # sum of log likelihood for each cell
   ll = np.sum(np.log(likecell))
-  return(ll)
+  return ll
 
 
-# Get the pdf 1d using parameters
 def get_pdf(p, nx, noxpdf, oxpdf, odxpdf):
+  """Get the pdf on x 1d using parameters
+
+  Args:
+    p (np.ndarray): Set of parameters to get pdf
+    nx (int): Number of values in x.
+    noxpdf (int): Number of values in x to evaluate pdf
+    oxpdf (np.ndarray): bin centers for pdf
+    odxpdf (float): Distance between 2 bin centers in oxpdf
+    
+  Returns:
+    np.ndarray: The pdf evaluated on x
+  """
   amp = p[2::3]
   mu = p[::3]
   sig = p[1::3]
@@ -115,11 +184,24 @@ def get_pdf(p, nx, noxpdf, oxpdf, odxpdf):
     pdf_o += ampk * trunc_norm(oxpdf, odxpdf, muk, sigk)
   # I do the mean over the osampx
   pdf = np.mean(pdf_o.reshape(nx, -1), axis=1)
-  return(pdf)
+  return pdf
 
 
-# Return the same as gauss_mcmc but from a npz
 def extract_from_npz(output):
+  """Return the same as gauss_mcmc but from a npz
+
+  Args:
+    output (str): file_path to numpy archive
+  
+  Returns:
+    mu (np.ndarray): The average of parameters
+    cov (np.ndarray): The covariance between parameters
+    ox (np.ndarray): The nx * osampx bin centers
+    oxpdf (np.ndarray): The osampxpdf * nx bin centers
+    x (np.ndarray): The nx bin centers
+    logprob (np.ndarray): The logprob values
+    samples (np.ndarray): matrix with parameters for each sample
+  """
   print("Reading")
   start = time.time()
   mcmc_res = np.load(output, allow_pickle=True)
@@ -135,10 +217,33 @@ def extract_from_npz(output):
   return(mu, cov, ox, oxpdf, x, logprob_values, samples)
 
 
-# In order to compare multiple models we use an estimate of the log evidence
 def write_evidence(data, col_gene, mu, cov, ox, oxpdf, x, min_scale,
-                   covis_scale, nis, logprob, output, seed,
+                   covis_scale, nis, logprob_function, output, seed,
                    xscale, target_sum):
+  """Write evidence to file
+  In order to compare multiple models we use an estimate of the log evidence
+
+  Args:
+    data (pandas.DataFrame): Data frame with 'nCount_RNA' and the gene of interest
+    col_gene (str): Column label in `data` with the gene of interest
+    mu (np.ndarray): The average of parameters
+    cov (np.ndarray): The covariance between parameters
+    ox (np.ndarray): The nx * osampx bin centers
+    oxpdf (np.ndarray): The osampxpdf * nx bin centers
+    x (np.ndarray): The nx bin centers
+    min_scale (float): Minimal value of the scale of gaussians
+    covis_scale (float): Scale factor to apply to covariance of parameters
+                         to get random parameters in logevidence evaluation.
+    nis (int): Size of sampling of random parameters in logevidence evaluation.
+    logprob_function (function): Log probability of the distribution to sample.
+    output (str): File path to write value of log evidence
+    seed (int): Seed
+    xscale (str): scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))
+    target_sum (int): factor when Seurat scale is used: (log(1+targetSum*X))
+
+  Raises:
+      ValueError: If ox or oxpdf have incompatible size with x
+  """
   nx = x.size
   dx = x[1] - x[0]
   xmin = x[0] - dx / 2
@@ -146,11 +251,11 @@ def write_evidence(data, col_gene, mu, cov, ox, oxpdf, x, min_scale,
   noxpdf = oxpdf.size
   odxpdf = oxpdf[1] - oxpdf[0]
   if ox.size % nx != 0:
-    raise Exception("The size of ox is not multiple of size of x.")
+    raise ValueError("The size of ox is not multiple of size of x.")
   if oxpdf.size % nx != 0:
-    raise Exception("The size of oxpdf is not multiple of size of x.")
+    raise ValueError("The size of oxpdf is not multiple of size of x.")
 
-  Ax = get_Ax(data, col_gene, nx, x, dx, ox, xscale, target_sum)
+  Ax = get_Ax(data, col_gene, nx, dx, ox, xscale, target_sum)
 
   nnorm = (mu.size + 1) // 3
 
@@ -161,19 +266,35 @@ def write_evidence(data, col_gene, mu, cov, ox, oxpdf, x, min_scale,
   # We calculate logevidence
   np.random.seed(seed)
   logevidence = samsam.covis(mu, covis_scale ** 2 * cov,
-                             logprob, nsamples=nis,
+                             logprob_function, nsamples=nis,
                              pref=mu, wdist=1 / (np.diag(cov)), permutx=permutx,
-                             xmin=xmin, xmax=xmax, nx=nx, dx=dx,
+                             xmin=xmin, xmax=xmax, nx=nx,
                              noxpdf=noxpdf, oxpdf=oxpdf, odxpdf=odxpdf,
                              min_scale=min_scale,
                              Ax=Ax)[2]['logevidence']
 
   # We write it into a file
-  with open(output, 'w') as fo:
+  with open(output, 'w', encoding="utf-8") as fo:
     fo.write(f'{logevidence}\n')
 
 
 def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target_sum):
+  """Compute plots for 1d
+
+  Args:
+    x (np.ndarray): The nx bin centers on which pdf has been evaluated
+    pdf (np.ndarray): PDF values on x for each sample to plot
+    title (str): Title for plots
+    output (str): Path for output plots
+    data (pd.DataFrame): Data frame with 'nCount_RNA' and the gene of interest
+    col_gene (str): Column label in `data` with the gene of interest
+    osampx (np.ndarray): bin centers for gaussian evaluation
+    xscale (str): scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))
+    target_sum (int): factor when Seurat scale is used: (log(1+targetSum*X))
+
+  Raises:
+      NotImplementedError: If xscale is not implemented
+  """
   # We assume x is equally spaced
   dx = x[1] - x[0]
   xmin = x[0] - dx / 2
@@ -219,9 +340,9 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
       Xs[Xs == 0] = np.exp(xmin)
       density = kde.gaussian_kde(np.log(Xs))(x)
     else:
-      raise Exception("Only xscale Seurat and log are implemented.")
+      raise NotImplementedError("Only xscale Seurat and log are implemented.")
     plt.plot(x, density, color='green')
-  except Exception:
+  except NotImplementedError:
     print("Could not compute density from input data.")
   plt.xlim(xmin, xmax)
   plt.ylim(0, )
@@ -237,7 +358,7 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
   nx = x.size
   nox = nx * osampx
   ox = get_bins_centers(xmin, xmax, nox)
-  Ax = get_Ax(data, col_gene, nx, x, dx, ox, xscale, target_sum)
+  Ax = get_Ax(data, col_gene, nx, dx, ox, xscale, target_sum)
   post_per_cell = Ax * np.mean(pdf, axis=0)
   # I renormalize each pdf:
   post_per_cell /= (np.sum(post_per_cell, axis=1)[:, None] * dx)
@@ -273,7 +394,8 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
   average_per_cell = np.sum(post_per_cell * x, axis=1) * dx
   average_square_per_cell = np.sum(post_per_cell * x * x, axis=1) * dx
   var_per_cell = average_square_per_cell - average_per_cell * average_per_cell
-  infered_pdf_per_cell = np.array([trunc_norm(x, dx, mu, np.sqrt(var)) for mu, var in zip(average_per_cell, var_per_cell)])
+  infered_pdf_per_cell = np.array([trunc_norm(x, dx, mu, np.sqrt(var))
+                                   for mu, var in zip(average_per_cell, var_per_cell)])
   infered_pdf_global = np.mean(infered_pdf_per_cell, axis=0)
   # Plot
   plt.figure()
@@ -294,9 +416,9 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
       Xs[Xs == 0] = np.exp(xmin)
       density = kde.gaussian_kde(np.log(Xs))(x)
     else:
-      raise Exception("Only xscale Seurat and log are implemented.")
+      raise NotImplementedError("Only xscale Seurat and log are implemented.")
     plt.plot(x, density, color='green', label='density from data')
-  except Exception:
+  except NotImplementedError:
     print("Could not compute density from input data.")
   # Posterior using full pdf
   plt.plot(x, post_all_cells, color='orange', label='mean post pdf')
@@ -305,7 +427,7 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
     density = kde.gaussian_kde(average_per_cell)(x)
     plt.hist(average_per_cell, bins=40, color='magenta', label='histogram post mean', density=True)
     plt.plot(x, density, color='pink', label='density post mean')
-  except Exception:
+  except Exception:  # pylint: disable=W0718
     print("Could not compute density from average per cell.")
   plt.plot(x, infered_pdf_global, color='purple', label='post gauss each cell')
   plt.legend()
@@ -333,3 +455,45 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
   # Export values of mean found in each sample
   means = pdf @ (x * dx)
   np.savetxt(f'{file_prefix}_means.txt.gz', means)
+
+
+def args_check(args):
+  """Check args for 1d
+
+  Args:
+      args (Namespace): Namespace object to check
+
+  Raises:
+      ValueError: when arguments are not valid
+
+  Returns:
+      Namespace: Updated Namespace
+  """
+  if args.xscale == 'Seurat' and args.xmin < 0:
+    raise ValueError("--xmin negative is not "
+                     "compatible with --xscale Seurat "
+                     "as it is log(1+targetSum*X).")
+  if args.xscale == 'Seurat' and args.targetSum < 0:
+    raise ValueError("--targetSum negative is not "
+                     "compatible with --xscale Seurat "
+                     "as it is log(1+targetSum*X).")
+  if args.xscale == 'log' and args.xmax > 0:
+    raise ValueError("--xmax positive is not "
+                     "compatible with --xscale log "
+                     "as it is log(X) and X < 1.")
+  # Check the minScale
+  dx = (args.xmax - args.xmin) / args.nx
+  min_minScale = max(dx / args.osampxpdf * 2, dx / 2)
+  if args.minScale < dx / 2:
+    print(f"The value of minScale ({args.minScale})"
+          f" must be above half the bin size ((xmax - xmin) / nx / 2 = {dx / 2}).\n"
+          f"Minimum value will be used ({min_minScale}).")
+    args.minScale = min_minScale
+  if args.minScale < dx / args.osampxpdf * 2:
+    print(f"The value of minScale ({args.minScale})"
+          " must be above twice the bin size "
+          "of pdf evaluation ((xmax - xmin) / (nx * osampxpdf) * 2 ="
+          f" {dx / args.osampxpdf * 2}).\n"
+          f"Minimum value will be used ({min_minScale}).")
+    args.minScale = min_minScale
+  return args

@@ -1,22 +1,40 @@
 # Copyright 2021 Jean-Baptiste Delisle and Lucille Delisle
-import numpy as np
+"""
+Runner for combineMultipleModels_1d
+"""
 import sys
-import argparse
 import os
-import time
 from tempfile import NamedTemporaryFile
 
+import numpy as np
+
 # Local imports
-from . common import get_data_txt, get_data_annData, get_bins_centers
+from . common import get_bins_centers, parse_arguments, \
+  get_data_from_args
 from . oned import logprob, extract_from_npz, write_evidence, \
-    get_pdf, plots_from_pdf
-from baredSC._version import __version__
+    get_pdf, plots_from_pdf, args_check
 
 
 # Do some plots and exports in txt
 def plot_combined(all_results, all_logevid, title, output, data, col_gene,
                   removeFirstSamples, nsampInPlot, pretty_bins, osampx,
                   xscale, target_sum):
+  """Main function of combineMultipleModels_1d
+
+  Args:
+    all_results (dict of int: [np.ndarray]): Dictionary with results for each model
+    all_logevid ([float]): Log evidence values for each model
+    title (str): Title for plots
+    output (str): Path for output plots
+    data (pd.DataFrame): Data frame with 'nCount_RNA' and the gene of interest
+    col_gene (str): Column label in `data` with the gene of interest
+    removeFirstSamples (int): Number of samples to ignore before making the plots
+    nsampInPlot (int): Approximate number of samples to use in plots.
+    pretty_bins (int): Number of bins to use in plots
+    osampx (np.ndarray): bin centers for gaussian evaluation
+    xscale (str): scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))
+    target_sum (int): factor when Seurat scale is used: (log(1+targetSum*X))
+  """
   # Evaluate how many samples from each output you will get:
   all_logevid_delta = [le - max(all_logevid) for le in all_logevid]
   # Delog the log evid
@@ -59,7 +77,8 @@ def plot_combined(all_results, all_logevid, title, output, data, col_gene,
       print(f"Considering the last {samples.shape[0]} samples.")
       if samples.shape[0] < n_sample:
         new_nsampInPlot = nsampInPlot * samples.shape[0] // n_sample
-        print(f"Could not sample {n_sample} samples from output {i} will plot {new_nsampInPlot} samples.")
+        print(f"Could not sample {n_sample} samples from output {i}"
+              f" will plot {new_nsampInPlot} samples.")
         return(plot_combined(all_results, all_logevid, title, output, data, col_gene,
                              removeFirstSamples, new_nsampInPlot, pretty_bins, osampx,
                              xscale, target_sum))
@@ -74,161 +93,36 @@ def plot_combined(all_results, all_logevid, title, output, data, col_gene,
       else:
         pdf = np.concatenate((pdf, current_pdf))
   plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target_sum)
-
-
-def parse_arguments(args=None):
-  argp = argparse.ArgumentParser(
-      description=("Combine mcmc results from multiple models to get a"
-                   " mixture using logevidence to infer weights."))
-  argprequired = argp.add_argument_group('Required arguments')
-  argpopt_mcmc = argp.add_argument_group('Optional arguments used to run MCMC')
-  argpopt_data = argp.add_argument_group('Optional arguments to select input data')
-  argpopt_plot = argp.add_argument_group('Optional arguments to customize plots and text outputs')
-  argpopt_loge = argp.add_argument_group('Optional arguments to evaluate logevidence')
-  # Get data:
-  group = argprequired.add_mutually_exclusive_group(required=True)
-  group.add_argument('--input', default=None,
-                     help="Input table (tabular separated"
-                     " with header) with one line per cell"
-                     " columns with raw counts and one column"
-                     " nCount_RNA with total number of UMI per cell"
-                     " optionally other meta data to filter.")
-  group.add_argument('--inputAnnData', default=None,
-                     help="Input annData (for example from Scanpy).")
-  argprequired.add_argument('--geneColName', default=None, required=True,
-                            help="Name of the column with gene counts.")
-  argpopt_data.add_argument('--metadata1ColName', default=None,
-                            help="Name of the column with metadata1 to filter.")
-  argpopt_data.add_argument('--metadata1Values', default=None,
-                            help="Comma separated values for metadata1 of cells to keep.")
-  argpopt_data.add_argument('--metadata2ColName', default=None,
-                            help="Name of the column with metadata2 to filter.")
-  argpopt_data.add_argument('--metadata2Values', default=None,
-                            help="Comma separated values for metadata2 of cells to keep.")
-  argpopt_data.add_argument('--metadata3ColName', default=None,
-                            help="Name of the column with metadata3 to filter.")
-  argpopt_data.add_argument('--metadata3Values', default=None,
-                            help="Comma separated values for metadata3 of cells to keep.")
-  # MCMC
-  argprequired.add_argument('--outputs', default=None, required=True, nargs='+',
-                            help="Ouput files basename (will be npz)"
-                            " with different results of mcmc to combine.")
-  argpopt_mcmc.add_argument('--xmin', default=0, type=float,
-                            help="Minimum value to consider in x axis.")
-  argpopt_mcmc.add_argument('--xmax', default=2.5, type=float,
-                            help="Maximum value to consider in x axis.")
-  argpopt_mcmc.add_argument('--xscale', default="Seurat", choices=['Seurat', 'log'],
-                            help="scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))")
-  argpopt_mcmc.add_argument('--targetSum', default=10**4, type=float,
-                            help="factor when Seurat scale is used: (log(1+targetSum*X)) (default is 10^4, use 0 for the median of nRNA_Counts)")
-  argpopt_mcmc.add_argument('--nx', default=100, type=int,
-                            help="Number of values in x to check how "
-                            "your evaluated pdf is compatible with the model.")
-  argpopt_mcmc.add_argument('--osampx', default=10, type=int,
-                            help="Oversampling factor of x values when evaluating "
-                            "pdf of Poisson distribution.")
-  argpopt_mcmc.add_argument('--osampxpdf', default=5, type=int,
-                            help="Oversampling factor of x values when evaluating "
-                            "pdf at each step of the MCMC.")
-  argpopt_mcmc.add_argument('--minScale', default=0.1, type=float,
-                            help="Minimal value of the scale of gaussians"
-                            " (Default is 0.1 but cannot be smaller than "
-                            "max of twice the bin size of pdf evaluation"
-                            " and half the bin size).")
-  argpopt_mcmc.add_argument('--seed', default=1, type=int,
-                            help="Change seed for another output.")
-  # Plot
-  argprequired.add_argument('--figure', default=None, required=True,
-                            help="Ouput figure basename.")
-  argpopt_plot.add_argument('--title', default=None,
-                            help="Title in figures.")
-  argpopt_plot.add_argument('--removeFirstSamples', default=None, type=int,
-                            help="Number of samples to ignore before making the plots"
-                            " (default is nsampMCMC / 4).")
-  argpopt_plot.add_argument('--nsampInPlot', default=100000, type=int,
-                            help="Approximate number of samples to use in plots.")
-  argpopt_plot.add_argument('--prettyBins', default=None, type=int,
-                            help="Number of bins to use in plots (Default is nx).")
-  # Evidence
-  argpopt_loge.add_argument('--logevidences', default=None, nargs='+',
-                            help="Ouput files of precalculated log evidence values."
-                            "(if not provided will be calculated).")
-  argpopt_loge.add_argument('--coviscale', default=1, type=float,
-                            help="Scale factor to apply to covariance of parameters"
-                            " to get random parameters in logevidence evaluation.")
-  argpopt_loge.add_argument('--nis', default=1000, type=int,
-                            help="Size of sampling of random parameters in logevidence evaluation.")
-  # Version
-  argp.add_argument('--version', action='version',
-                    version=__version__)
-  return(argp)
+  return None
 
 
 def main(args=None):
-  args = parse_arguments().parse_args(args)
-  # Check incompatibilities:
-  if args.xscale == 'Seurat' and args.xmin < 0:
-    raise Exception("--xmin negative is not "
-                    "compatible with --xscale Seurat "
-                    "as it is log(1+targetSum*X).")
-  if args.xscale == 'Seurat' and args.targetSum < 0:
-    raise Exception("--targetSum negative is not "
-                    "compatible with --xscale Seurat "
-                    "as it is log(1+targetSum*X).")
-  if args.xscale == 'log' and args.xmax > 0:
-    raise Exception("--xmax positive is not "
-                    "compatible with --xscale log "
-                    "as it is log(X) and X < 1.")
-  # Check the minScale
-  dx = (args.xmax - args.xmin) / args.nx
-  min_minScale = max(dx / args.osampxpdf * 2, dx / 2)
-  if args.minScale < dx / 2:
-    print(f"The value of minScale ({args.minScale})"
-          f" must be above half the bin size ((xmax - xmin) / nx / 2 = {dx / 2}).\n"
-          f"Minimum value will be used ({min_minScale}).")
-    args.minScale = min_minScale
-  if args.minScale < dx / args.osampxpdf * 2:
-    print(f"The value of minScale ({args.minScale})"
-          " must be above twice the bin size "
-          "of pdf evaluation ((xmax - xmin) / (nx * osampxpdf) * 2 ="
-          f" {dx / args.osampxpdf * 2}).\n"
-          f"Minimum value will be used ({min_minScale}).")
-    args.minScale = min_minScale
+  """Main function of combineMultipleModels_1d
+  """
+  args = parse_arguments('combineMultipleModels_1d').parse_args(args)
+  # Update args and check
+  args = args_check(args)
   # Check the directory of args.figure is writtable:
   if os.path.dirname(args.figure) != '' and not os.access(os.path.dirname(args.figure), os.W_OK):
-    raise Exception("The output figure is not writable no figure/export will be done,"
-                    " check the directory exists.")
+    raise IOError("The output figure is not writable no figure/export will be done,"
+                  " check the directory exists.")
 
   # Load data
-  print("Get raw data")
-  start = time.time()
-  if args.input is not None:
-    input = args.input
-    get_data = get_data_txt
-  else:
-    input = args.inputAnnData
-    get_data = get_data_annData
-
-  data = get_data(input,
-                  args.metadata1ColName, args.metadata1Values,
-                  args.metadata2ColName, args.metadata2Values,
-                  args.metadata3ColName, args.metadata3Values,
-                  [args.geneColName])
-  print(f"Got. It took {(time.time() - start):.2f} seconds.")
+  data = get_data_from_args(args, [args.geneColName])
 
   # Check that output exists:
   for output in args.outputs:
     # Remove potential suffix:
     output = output.removesuffix('.npz')
     if not os.path.exists(f'{output}.npz'):
-      raise Exception(f'{output}.npz does not exists.')
+      raise ValueError(f'{output}.npz does not exists.')
   if args.logevidences is not None:
     assert len(args.logevidences) == len(args.outputs), \
         "The number of logevid does not corresponds" \
         " to the number of outputs."
     for logevid_file in args.logevidences:
       if not os.path.exists(logevid_file):
-        raise Exception(f'{logevid_file} does not exists.')
+        raise ValueError(f'{logevid_file} does not exists.')
 
   # Get the results and the logevid:
   all_results = {}
@@ -254,26 +148,29 @@ def main(args=None):
           "xmin value do not match what is in output."
       assert abs(xmax - args.xmax) < dx, \
           "xmax value do not match what is in output."
-    except Exception as e:
-      raise Exception(f"{e}\nChange args or rerun the MCMC.")
+    except AssertionError as e:
+      raise ValueError(f"{e}\nChange args or rerun the MCMC.") from e
     # Get the logevid value if the file is provided:
     if args.logevidences is not None:
       all_logevid_files[i] = args.logevidences[i]
     else:
       # Else calculate it
-      all_logevid_files[i] = NamedTemporaryFile(delete=False).name
-      write_evidence(data, args.geneColName, *all_results[i][:5], args.minScale, args.coviscale,
-                     args.nis, logprob, all_logevid_files[i], args.seed, args.xscale, args.targetSum)
+      with NamedTemporaryFile(delete=False) as temp:
+        all_logevid_files[i] = temp.name
+      write_evidence(data, args.geneColName, *all_results[i][:5],
+                     args.minScale, args.coviscale,
+                     args.nis, logprob, all_logevid_files[i],
+                     args.seed, args.xscale, args.targetSum)
     # Read the logevid value:
     try:
-      with open(all_logevid_files[i], 'r') as f:
+      with open(all_logevid_files[i], 'r', encoding="utf-8") as f:
         logevid = f.read()
     except Exception as e:
-      raise Exception(f"Could not read the file {all_logevid_files[i]}: {e}")
+      raise ValueError(f"Could not read the file {all_logevid_files[i]}: {e}") from e
     try:
       logevid = float(logevid)
-    except Exception:
-      raise Exception(f"The value in the file {all_logevid_files[i]} is not a float.")
+    except Exception as e:
+      raise ValueError(f"The value in the file {all_logevid_files[i]} is not a float.") from e
     all_logevid.append(logevid)
   # Make the plots:
   plot_combined(all_results, all_logevid, args.title, args.figure, data, args.geneColName,
@@ -282,7 +179,7 @@ def main(args=None):
 
 
 if __name__ == "__main__":
-    args = None
+    arguments = None
     if len(sys.argv) == 1:
-      args = ["--help"]
-    main(args)
+      arguments = ["--help"]
+    main(arguments)
