@@ -1,6 +1,6 @@
 # create the environment using : `conda env create -f baredSC_dev_env.yml`
 # `conda activate baredSC_dev`
-# Then you need to install baredSC with `python setup.py install`
+# Then you need to install baredSC with `pip install .`
 # Then you can make the doc with cd docs && make html
 # Create the package by `python setup.py sdist`
 # Upload it with `python3 -m twine upload dist/*`
