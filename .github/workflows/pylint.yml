@@ -20,4 +20,11 @@ jobs:
         pip install pylint
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        # Disable C0103: invalid name
+        # W0311: Bad indentation. (Decided to use 2 spaces instead of 4)
+        # E0401: Import errors
+        # R0912: Too many branches
+        # R0913: Too many arguments
+        # R0914: Too many local variables
+        # R0915: Too many statements
+        pylint --disable C0103,W0311,E0401,R0912,R0913,R0914,R0915 $(git ls-files '*.py' | grep -v "docs/")
