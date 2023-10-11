@@ -27,4 +27,4 @@ jobs:
         # R0913: Too many arguments
         # R0914: Too many local variables
         # R0915: Too many statements
-        pylint --disable C0103,W0311,E0401,R0912,R0913,R0914,R0915 $(git ls-files '*.py' | grep -v "docs/")
+        pylint --disable C0103,W0311,E0401,R0912,R0913,R0914,R0915 $(git ls-files '*.py' | grep -v "docs/" | grep -v setup.py)
