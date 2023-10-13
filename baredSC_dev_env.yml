@@ -18,6 +18,7 @@ dependencies:
    - ipython # For the doc
    - sphinx-argparse # For the doc
    - twine # For the upload
+   - pytest
    - pip
    - pip:
       - sphinx-autorun # For the doc
