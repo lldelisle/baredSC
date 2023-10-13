@@ -374,21 +374,21 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
                      header=True, sep='\t')
 
   # Plot some individual pdfs
-  colors = plt.cm.jet(np.linspace(0, 1, 100))
+  cmap = plt.cm.get_cmap('jet', 100)
 
   plt.figure()
   plt.title(f"{title}\n100 individual samples")
   for i, cur_pdf in enumerate(pdf[::(pdf.shape[0] // 100)][:100]):
-    plt.plot(x, cur_pdf, color=colors[i], alpha=0.3, rasterized=True)
+    plt.plot(x, cur_pdf, color=cmap(i), alpha=0.3, rasterized=True)
   plt.savefig(f'{file_prefix}_individuals.{file_suffix}')
 
   # I plot posterior of first cells:
   ncells = min(50, post_per_cell.shape[0])
-  colors = plt.cm.jet(np.linspace(0, 1, ncells))
+  cmap = plt.cm.get_cmap('jet', ncells)
   plt.figure()
   plt.title(f"{title}\nposterior of {ncells} cells")
   for i, cur_pdf in enumerate(post_per_cell[:ncells, :]):
-    plt.plot(x, cur_pdf, color=colors[i], alpha=0.3, rasterized=True)
+    plt.plot(x, cur_pdf, color=cmap(i), alpha=0.3, rasterized=True)
   plt.savefig(f'{file_prefix}_posterior_individuals.{file_suffix}')
 
   average_per_cell = np.sum(post_per_cell * x, axis=1) * dx

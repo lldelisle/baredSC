@@ -522,7 +522,7 @@ def plots_from_pdf(x, y, pdf, title, output,
   plt.savefig(f'{file_prefix}_median.{file_suffix}')
 
   # Plot the projection of individual pdfs:
-  colors = plt.cm.jet(np.linspace(0, 1, 100))
+  cmap = plt.cm.get_cmap('jet', 100)
 
   # Plot 4 panels plot
   fig, axs = plt.subplots(2, 2)
@@ -532,14 +532,14 @@ def plots_from_pdf(x, y, pdf, title, output,
   # PDF 1d
   ax = axs[0, 0]
   for i, cur_pdf in enumerate(pdfx[::(pdfx.shape[0] // 100)][:100]):
-    ax.plot(x, cur_pdf, color=colors[i], alpha=0.3)
+    ax.plot(x, cur_pdf, color=cmap(i), alpha=0.3)
   ax.set_ylim(0,)
   ax.set_ylabel('PDF')
   ax.set_xlabel(gene_x)
 
   ax = axs[1, 1]
   for i, cur_pdf in enumerate(pdfy[::(pdfy.shape[0] // 100)][:100]):
-    ax.plot(cur_pdf, y, color=colors[i], alpha=0.3)
+    ax.plot(cur_pdf, y, color=cmap(i), alpha=0.3)
   ax.set_xlim(0,)
   ax.set_xlabel('PDF')
   ax.set_ylabel(gene_y)
