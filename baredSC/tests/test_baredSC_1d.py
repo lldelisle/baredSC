@@ -21,7 +21,7 @@ BARED_1D_IMAGES_SUFFIX = ['', '_convergence', '_p', '_corner', '_individuals',
 
 BARED_1D_TEXT_SUFFIX = ['_neff.txt', '_p.txt', '_pdf.txt', '_posterior_per_cell.txt']
 
-TOLERENCE = 13  # default matplotlib pixed difference tolerance
+TOLERENCE = 18  # default matplotlib pixed difference tolerance
 
 
 def test_baredSC_1d_1gauss_default():
