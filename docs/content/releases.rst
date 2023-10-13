@@ -13,6 +13,7 @@ Improvements:
 ^^^^^^^^^^^^^
 
 - The output ``means.txt.gz`` is now in documentation.
+- Big linting effort.
 
 
 1.1.1
