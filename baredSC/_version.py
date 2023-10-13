@@ -1,1 +1,5 @@
-__version__ = '1.1.1'
+"""
+Store version number
+"""
+
+__version__ = '1.1.2'

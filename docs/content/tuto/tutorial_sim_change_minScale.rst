@@ -11,7 +11,7 @@ We took total UMI counts from a real dataset of NIH3T3.
 We generated a example where 2 genes have the same distribution (2 gaussians, one of mean 0.375, scale 0.125 and another one of mean 1 and scale 0.1).
 Half of cells goes in each gaussian.
 The gene is called "0.5_0_0_0.5_x".
-The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_2d_2.txt>`_.
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/tests/test_data/nih3t3_generated_2d_2.txt>`_.
 
 minScale
 --------
@@ -30,7 +30,7 @@ because it causes some issues so setting it to 0 will put the minimum value acce
 
     $ nnorm=1
     $ baredSC_1d \
-            --input example/nih3t3_generated_2d_2.txt \
+            --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
             --metadata1ColName 0.5_0_0_0.5_group \
             --metadata1Values 3.0 \
             --geneColName 0.5_0_0_0.5_x \
@@ -58,7 +58,7 @@ For example, we can use 0.05:
 
     $ nnorm=1
     $ baredSC_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --metadata1ColName 0.5_0_0_0.5_group \
         --metadata1Values 3.0 \
         --geneColName 0.5_0_0_0.5_x \

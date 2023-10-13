@@ -5,7 +5,7 @@
 for group in 0 3; do
   for nnorm in 1 2; do
     baredSC_1d \
-          --input example/nih3t3_generated_2d_2.txt \
+          --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
           --metadata1ColName 0.5_0_0_0.5_group \
           --metadata1Values ${group}.0 \
           --geneColName 0.5_0_0_0.5_x \
@@ -16,7 +16,7 @@ for group in 0 3; do
           --logevidence example/first_example_1d_group${group}_${nnorm}gauss_25_neff200_logevid.txt
   done
   combineMultipleModels_1d \
-          --input example/nih3t3_generated_2d_2.txt \
+          --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
           --metadata1ColName 0.5_0_0_0.5_group \
           --metadata1Values ${group}.0 \
           --geneColName 0.5_0_0_0.5_x --nx 25 \
@@ -29,7 +29,7 @@ done
 for group in 1 2; do
         for nnorm in 1 2 3; do
           baredSC_1d \
-                --input example/nih3t3_generated_2d_2.txt \
+                --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
                 --metadata1ColName group \
                 --metadata1Values group${group} \
                 --geneColName 0.5_0_0_0.5_x \
@@ -40,7 +40,7 @@ for group in 1 2; do
             --logevidence example/first_example_1d_cellgroup${group}_${nnorm}gauss_25_neff200_logevid.txt
         done
         combineMultipleModels_1d \
-                --input example/nih3t3_generated_2d_2.txt \
+                --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
                 --metadata1ColName group \
                 --metadata1Values group${group} \
                 --geneColName 0.5_0_0_0.5_x --nx 25 \

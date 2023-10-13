@@ -1,21 +1,22 @@
 # Copyright 2021 Jean-Baptiste Delisle and Lucille Delisle
-import numpy as np
+"""
+Runner for baredSC_1d
+"""
+
 import sys
-import argparse
 import os
 from itertools import permutations
 import time
 import datetime
-from tempfile import NamedTemporaryFile
-from shutil import copy
+import numpy as np
 from samsam import sam
 
 # Local imports
-from . common import get_data_txt, get_data_annData, permuted, get_Ax, get_prefix_suffix, \
-    plot_QC, get_bins_centers
+from . common import permuted, get_Ax, \
+  plot_QC, get_bins_centers, parse_arguments, checkNeff, args_check_baredSC, \
+  get_data_from_args
 from . oned import logprob, extract_from_npz, write_evidence, \
-    get_pdf, plots_from_pdf
-from . _version import __version__
+  get_pdf, plots_from_pdf, args_check
 
 
 # Main function: running the mcmc:
@@ -26,7 +27,36 @@ def gauss_mcmc(data, col_gene,
                nsamples_mcmc, nsamples_burn,
                nsplit_burn, T0_burn, output,
                seed):
+  """Run MCMC with 1d Gaussians
 
+  Args:
+    data (pandas.DataFrame): Data frame with 'nCount_RNA' and the gene of interest
+    col_gene (str): Column label in `data` with the gene of interest
+    nx (int): Number of values in x to check how your evaluated pdf is compatible with the model.
+    osampx (int): Oversampling factor of x values when evaluating pdf of Poisson distribution.
+    osampxpdf (int): Oversampling factor of x values when evaluating pdf at each step of the MCMC.
+    xmin (int): Minimum value to consider in x axis.
+    xmax (int): Maximum value to consider in x axis.
+    min_scale (float): Minimal value of the scale of gaussians
+    xscale (str): scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))
+    target_sum (int): factor when Seurat scale is used: (log(1+targetSum*X))
+    nnorm (int): Number of gaussians to fit.
+    nsamples_mcmc (int): Number of samplings (iteractions) of mcmc.
+    nsamples_burn (int): Number of samplings (iteractions) in the burning phase of mcmc.
+    nsplit_burn (int): Number of steps in the burning phase of mcmc.
+    T0_burn (float): Initial temperature in the burning phase of mcmc.
+    output (str): Ouput file basename (will be npz) with results of mcmc.
+    seed (int): Seed
+      
+  Returns:
+    mu (np.ndarray): The average of parameters
+    cov (np.ndarray): The covariance between parameters
+    ox (np.ndarray): The nx * osampx bin centers
+    oxpdf (np.ndarray): The osampxpdf * nx bin centers
+    x (np.ndarray): The nx bin centers
+    logprob (np.ndarray): The logprob values
+    samples (np.ndarray): matrix with parameters for each sample
+  """
   # 1. Calculate the constants
   nox = nx * osampx
   noxpdf = nx * osampxpdf
@@ -39,7 +69,7 @@ def gauss_mcmc(data, col_gene,
   odxpdf = oxpdf[1] - oxpdf[0]
 
   # Evaluate p(ki|Ni,xj) * dx (independent of the pdf)
-  Ax = get_Ax(data, col_gene, nx, x, dx, ox, xscale, target_sum)
+  Ax = get_Ax(data, col_gene, nx, dx, ox, xscale, target_sum)
 
   # We want to get all possible permutation of the gaussians (3 parameters for each)
   permutx = np.array([np.concatenate(([3 * i + np.arange(3) for i in v]))
@@ -61,7 +91,7 @@ def gauss_mcmc(data, col_gene,
   # With a maximum temperature
   sk, dk = sam(p0, logprob, nsamples=nsamples_split,
                pref=p0, wdist=np.ones_like(p0), permutx=permutx,
-               xmin=xmin, xmax=xmax, nx=nx, dx=dx,
+               xmin=xmin, xmax=xmax, nx=nx,
                noxpdf=noxpdf, oxpdf=oxpdf, odxpdf=odxpdf,
                min_scale=min_scale,
                Ax=Ax, temp=T0_burn)
@@ -75,7 +105,7 @@ def gauss_mcmc(data, col_gene,
     sk, dk = sam(starting_point, logprob, nsamples=nsamples_split,
                  mu0=dk['mu'], cov0=dk['cov'], scale0=dk['scale'],
                  pref=dk['mu'], wdist=1 / (np.diag(dk['cov'])), permutx=permutx,
-                 xmin=xmin, xmax=xmax, nx=nx, dx=dx,
+                 xmin=xmin, xmax=xmax, nx=nx,
                  noxpdf=noxpdf, oxpdf=oxpdf, odxpdf=odxpdf,
                  min_scale=min_scale, Ax=Ax,
                  temp=T0_burn ** (1 - ksplit / nsplit_burn))
@@ -85,7 +115,7 @@ def gauss_mcmc(data, col_gene,
   samples, diags = sam(starting_point, logprob, nsamples=nsamples_mcmc,
                        mu0=dk['mu'], cov0=dk['cov'], scale0=dk['scale'],
                        pref=dk['mu'], wdist=1 / (np.diag(dk['cov'])), permutx=permutx,
-                       xmin=xmin, xmax=xmax, nx=nx, dx=dx,
+                       xmin=xmin, xmax=xmax, nx=nx,
                        noxpdf=noxpdf, oxpdf=oxpdf, odxpdf=odxpdf,
                        min_scale=min_scale, Ax=Ax)
   # save data to output
@@ -108,6 +138,24 @@ def gauss_mcmc(data, col_gene,
 # Do some plots and exports in txt
 def plot(oxpdf, x, logprob_values, samples, title, output, data, col_gene,
          removeFirstSamples, nsampInPlot, pretty_bins, osampx, xscale, target_sum):
+  """Plot baredSC_1d outputs
+
+  Args:
+    oxpdf (np.ndarray): bin centers for pdf
+    x (np.ndarray): bin centers for likelihood
+    logprob_values (np.ndarray): logprob values
+    samples (np.ndarray): matrix with parameter values for each sample
+    title (str): Title for plots
+    output (str): Path for output plots
+    data (pd.DataFrame): Data frame with 'nCount_RNA' and the gene of interest
+    col_gene (str): Column label in `data` with the gene of interest
+    removeFirstSamples (int): Number of samples to ignore before making the plots
+    nsampInPlot (int): Approximate number of samples to use in plots.
+    pretty_bins (int): Number of bins to use in plots
+    osampx (np.ndarray): bin centers for gaussian evaluation
+    xscale (str): scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))
+    target_sum (int): factor when Seurat scale is used: (log(1+targetSum*X))
+  """
   # We assume x is equally spaced
   dx = x[1] - x[0]
   if pretty_bins is None:
@@ -128,7 +176,7 @@ def plot(oxpdf, x, logprob_values, samples, title, output, data, col_gene,
   nnorm = (samples.shape[1] + 1) // 3
   p_names = [f'{pn}{i}' for i in range(nnorm) for pn in ['amp', 'mu', 'scale']][1:]
 
-  samples, Neff = plot_QC(logprob_values, samples, title, output,
+  samples, _ = plot_QC(logprob_values, samples, title, output,
                           removeFirstSamples, nsampInPlot,
                           p_names)
 
@@ -140,177 +188,21 @@ def plot(oxpdf, x, logprob_values, samples, title, output, data, col_gene,
   plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target_sum)
 
 
-def parse_arguments(args=None):
-  argp = argparse.ArgumentParser(
-      description=("Run mcmc to get the pdf for a given gene using a"
-                   " normal distributions. The full documentation "
-                   "is available at "
-                   "https://baredsc.readthedocs.io"))
-  argprequired = argp.add_argument_group('Required arguments')
-  argpopt_data = argp.add_argument_group('Optional arguments to select input data')
-  argpopt_mcmc = argp.add_argument_group('Optional arguments to run MCMC')
-  argpopt_plot = argp.add_argument_group('Optional arguments to get plots and text outputs')
-  argpopt_loge = argp.add_argument_group('Optional arguments to get logevidence')
-  # Get data:
-  group = argprequired.add_mutually_exclusive_group(required=True)
-  group.add_argument('--input', default=None,
-                     help="Input table (tabular separated"
-                     " with header) with one line per cell"
-                     " columns with raw counts and one column"
-                     " nCount_RNA with total number of UMI per cell"
-                     " optionally other meta data to filter.")
-  group.add_argument('--inputAnnData', default=None,
-                     help="Input annData (for example from Scanpy).")
-  argprequired.add_argument('--geneColName', default=None, required=True,
-                            help="Name of the column with gene counts.")
-  argpopt_data.add_argument('--metadata1ColName', default=None,
-                            help="Name of the column with metadata1 to filter.")
-  argpopt_data.add_argument('--metadata1Values', default=None,
-                            help="Comma separated values for metadata1 of cells to keep.")
-  argpopt_data.add_argument('--metadata2ColName', default=None,
-                            help="Name of the column with metadata2 to filter.")
-  argpopt_data.add_argument('--metadata2Values', default=None,
-                            help="Comma separated values for metadata2 of cells to keep.")
-  argpopt_data.add_argument('--metadata3ColName', default=None,
-                            help="Name of the column with metadata3 to filter.")
-  argpopt_data.add_argument('--metadata3Values', default=None,
-                            help="Comma separated values for metadata3 of cells to keep.")
-  # MCMC
-  argpopt_mcmc.add_argument('--xmin', default=0, type=float,
-                            help="Minimum value to consider in x axis.")
-  argpopt_mcmc.add_argument('--xmax', default=2.5, type=float,
-                            help="Maximum value to consider in x axis.")
-  argpopt_mcmc.add_argument('--xscale', default="Seurat", choices=['Seurat', 'log'],
-                            help="scale for the x-axis: Seurat (log(1+targetSum*X)) or log (log(X))")
-  argpopt_mcmc.add_argument('--targetSum', default=10**4, type=float,
-                            help="factor when Seurat scale is used: (log(1+targetSum*X)) (default is 10^4, use 0 for the median of nRNA_Counts)")
-  argpopt_mcmc.add_argument('--nx', default=100, type=int,
-                            help="Number of values in x to check how "
-                            "your evaluated pdf is compatible with the model.")
-  argpopt_mcmc.add_argument('--osampx', default=10, type=int,
-                            help="Oversampling factor of x values when evaluating "
-                            "pdf of Poisson distribution.")
-  argpopt_mcmc.add_argument('--osampxpdf', default=5, type=int,
-                            help="Oversampling factor of x values when evaluating "
-                            "pdf at each step of the MCMC.")
-  argpopt_mcmc.add_argument('--minScale', default=0.1, type=float,
-                            help="Minimal value of the scale of gaussians"
-                            " (Default is 0.1 but cannot be smaller than "
-                            "max of twice the bin size of pdf evaluation"
-                            " and half the bin size).")
-  argpopt_mcmc.add_argument('--nnorm', default=2, type=int,
-                            help="Number of gaussian to fit.")
-  argpopt_mcmc.add_argument('--nsampMCMC', default=100000, type=int,
-                            help="Number of samplings (iteractions) of mcmc.")
-  argpopt_mcmc.add_argument('--nsampBurnMCMC', default=None, type=int,
-                            help="Number of samplings (iteractions) in the "
-                            "burning phase of mcmc (Default is nsampMCMC / 4).")
-  argpopt_mcmc.add_argument('--nsplitBurnMCMC', default=10, type=int,
-                            help="Number of steps in the "
-                            "burning phase of mcmc.")
-  argpopt_mcmc.add_argument('--T0BurnMCMC', default=100.0, type=float,
-                            help="Initial temperature in the "
-                            "burning phase of mcmc (>1).")
-  argpopt_mcmc.add_argument('--seed', default=1, type=int,
-                            help="Change seed for another output.")
-  argpopt_mcmc.add_argument('--minNeff', default=None, type=float,
-                            help="Will redo the MCMC with 10 times more samples until "
-                            "the number of effective samples that this value "
-                            "(Default is not set so will not rerun MCMC).")
-  # To save/get MCMC
-  argpopt_mcmc.add_argument('--force', default=None, action='store_true',
-                            help="Force to redo the mcmc even if output exists.")
-  argprequired.add_argument('--output', default=None, required=True,
-                            help="Ouput file basename (will be npz)"
-                            " with results of mcmc.")
-  # Plot
-  argpopt_plot.add_argument('--figure', default=None,
-                            help="Ouput figure filename.")
-  argpopt_plot.add_argument('--title', default=None,
-                            help="Title in figures.")
-  argpopt_plot.add_argument('--removeFirstSamples', default=None, type=int,
-                            help="Number of samples to ignore before making the plots"
-                            " (default is nsampMCMC / 4).")
-  argpopt_plot.add_argument('--nsampInPlot', default=100000, type=int,
-                            help="Approximate number of samples to use in plots.")
-  argpopt_plot.add_argument('--prettyBins', default=None, type=int,
-                            help="Number of bins to use in plots (Default is nx).")
-  # Calculate evidence
-  argpopt_loge.add_argument('--logevidence', default=None,
-                            help="Ouput file to put logevidence value.")
-  argpopt_loge.add_argument('--coviscale', default=1, type=float,
-                            help="Scale factor to apply to covariance of parameters"
-                            " to get random parameters in logevidence evaluation.")
-  argpopt_loge.add_argument('--nis', default=1000, type=int,
-                            help="Size of sampling of random parameters in logevidence evaluation.")
-  # Version
-  argp.add_argument('--version', action='version',
-                    version=__version__)
-  return(argp)
-
-
 def main(args=None):
+  """Main function of baredSC_1d
+  """
   original_args = sys.argv[1:]
-  args = parse_arguments().parse_args(args)
-  # Put default:
-  if args.nsampBurnMCMC is None:
-    args.nsampBurnMCMC = args.nsampMCMC // 4
-  if args.removeFirstSamples is None:
-    args.removeFirstSamples = args.nsampMCMC // 4
-  # Remove potential suffix:
-  args.output = args.output.removesuffix('.npz')
-  # Check incompatibilities:
-  if args.minNeff is not None and args.figure is None:
-    raise Exception("--minNeff requires --figure to be set.")
-  if args.xscale == 'Seurat' and args.xmin < 0:
-    raise Exception("--xmin negative is not "
-                    "compatible with --xscale Seurat "
-                    "as it is log(1+targetSum*X).")
-  if args.xscale == 'Seurat' and args.targetSum < 0:
-    raise Exception("--targetSum negative is not "
-                    "compatible with --xscale Seurat "
-                    "as it is log(1+targetSum*X).")
-  if args.xscale == 'log' and args.xmax > 0:
-    raise Exception("--xmax positive is not "
-                    "compatible with --xscale log "
-                    "as it is log(X) and X < 1.")
-  # Check the minScale
-  dx = (args.xmax - args.xmin) / args.nx
-  min_minScale = max(dx / args.osampxpdf * 2, dx / 2)
-  if args.minScale < dx / 2:
-    print(f"The value of minScale ({args.minScale})"
-          f" must be above half the bin size ((xmax - xmin) / nx / 2 = {dx / 2}).\n"
-          f"Minimum value will be used ({min_minScale}).")
-    args.minScale = min_minScale
-  if args.minScale < dx / args.osampxpdf * 2:
-    print(f"The value of minScale ({args.minScale})"
-          " must be above twice the bin size "
-          "of pdf evaluation ((xmax - xmin) / (nx * osampxpdf) * 2 ="
-          f" {dx / args.osampxpdf * 2}).\n"
-          f"Minimum value will be used ({min_minScale}).")
-    args.minScale = min_minScale
-
+  args = parse_arguments('baredSC_1d').parse_args(args)
+  args = args_check_baredSC(args)
+  # Update args and check
+  args = args_check(args)
   # Load data
-  print("Get raw data")
-  start = time.time()
-  if args.input is not None:
-    input = args.input
-    get_data = get_data_txt
-  else:
-    input = args.inputAnnData
-    get_data = get_data_annData
-
-  data = get_data(input,
-                  args.metadata1ColName, args.metadata1Values,
-                  args.metadata2ColName, args.metadata2Values,
-                  args.metadata3ColName, args.metadata3Values,
-                  [args.geneColName])
-  print(f"Got. It took {(time.time() - start):.2f} seconds.")
+  data = get_data_from_args(args, [args.geneColName])
 
   # Check the directory of args.output is writtable:
   if os.path.dirname(args.output) != '' and not os.access(os.path.dirname(args.output), os.W_OK):
-    raise Exception("The output is not writable,"
-                    " check the directory exists.")
+    raise OSError("The output is not writable,"
+                  " check the directory exists.")
   if not os.path.exists(f'{args.output}.npz') or args.force:
     # Run mcmc:
     print("Run MCMC")
@@ -345,9 +237,9 @@ def main(args=None):
           "xmax value do not match what is in output."
       assert (results[5].size == args.nsampMCMC + 1) or (args.minNeff is not None), \
           "nsampMCMC value do not match what is in output."
-    except Exception as e:
-      raise Exception(f"Ouput file already exists and {e}"
-                      " Use --force to rerun MCMC.")
+    except AssertionError as e:
+      raise ValueError(f"Ouput file already exists and {e}"
+                       " Use --force to rerun MCMC.") from e
     if args.minNeff is not None:
       args.nsampMCMC = results[5].size - 1
 
@@ -361,39 +253,24 @@ def main(args=None):
       plot(*results[3:], args.title, args.figure, data, args.geneColName,
            args.removeFirstSamples, args.nsampInPlot, args.prettyBins,
            args.osampx, args.xscale, args.targetSum)
-      if args.minNeff is not None:
-        # Process the output to get prefix and suffix
-        file_prefix, file_suffix = get_prefix_suffix(args.figure)
-        with open(f'{file_prefix}_neff.txt', 'r') as f:
-          neff = float(f.read())
-        if neff < args.minNeff:
-          print("Neff is below the minimum required.")
-          temp_file = NamedTemporaryFile(delete=False, suffix=".npz").name
-          print(f"Results are moved to {temp_file}")
-          copy(f'{args.output}.npz', temp_file)
-          os.remove(f'{args.output}.npz')
-          # Change the args to multiply by 10 the nb of samples
-          new_args = original_args
-          if '--nsampMCMC' in new_args:
-            i = [i for i, v in enumerate(new_args) if v == '--nsampMCMC'][0]
-            new_args[i + 1] += '0'
-          else:
-            new_args.append('--nsampMCMC')
-            new_args.append(f'{args.nsampMCMC}0')
-          return main(new_args)
+      new_args = checkNeff(args, original_args)
+      if new_args is not None:
+        return main(new_args)
   if args.logevidence is not None:
     # Check the directory of args.logevidence is writtable:
-    if os.path.dirname(args.logevidence) != '' and not os.access(os.path.dirname(args.logevidence), os.W_OK):
+    if os.path.dirname(args.logevidence) != '' and not os.access(os.path.dirname(args.logevidence),
+                                                                 os.W_OK):
       print("The output logeveidence is not writable"
             " check the directory exists.")
     else:
       # Evaluate the logevid:
       write_evidence(data, args.geneColName, *results[:5], args.minScale, args.coviscale,
                      args.nis, logprob, args.logevidence, args.seed, args.xscale, args.targetSum)
+  return None
 
 
 if __name__ == "__main__":
-    args = None
+    arguments = None
     if len(sys.argv) == 1:
-      args = ["--help"]
-    main(args)
+      arguments = ["--help"]
+    main(arguments)

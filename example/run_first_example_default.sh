@@ -6,7 +6,7 @@
 # 0:00:43 of MCMC
 # 0:00:05 of pdf
 baredSC_1d \
-      --input example/nih3t3_generated_2d_2.txt \
+      --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
       --geneColName 0.5_0_0_0.5_x \
       --output example/first_example_1d_1gauss \
       --nnorm 1 \
@@ -18,7 +18,7 @@ baredSC_1d \
 # 0:00:43 of MCMC
 # 0:00:07 of pdf
 baredSC_1d \
-      --input example/nih3t3_generated_2d_2.txt \
+      --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
       --geneColName 0.5_0_0_0.5_x \
       --output example/first_example_1d_2gauss \
       --nnorm 2 \
@@ -30,7 +30,7 @@ baredSC_1d \
 # 0:00:46 of MCMC
 # 0:00:08 of pdf
 baredSC_1d \
-      --input example/nih3t3_generated_2d_2.txt \
+      --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
       --geneColName 0.5_0_0_0.5_x \
       --output example/first_example_1d_3gauss \
       --nnorm 3 \
@@ -42,7 +42,7 @@ baredSC_1d \
 # 0:08:43 of MCMC
 # 0:00:12 of pdf
 baredSC_1d \
-      --input example/nih3t3_generated_2d_2.txt \
+      --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
       --geneColName 0.5_0_0_0.5_x \
       --output example/first_example_1d_3gauss_1M \
       --nnorm 3 --nsampMCMC 1000000 \
@@ -52,7 +52,7 @@ baredSC_1d \
 
 # Combine the default
 combineMultipleModels_1d \
-      --input example/nih3t3_generated_2d_2.txt \
+      --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
       --geneColName 0.5_0_0_0.5_x \
       --outputs example/first_example_1d_1gauss \
       example/first_example_1d_2gauss \
@@ -65,7 +65,7 @@ combineMultipleModels_1d \
 ########
 for nnorm in 1 2 3; do
         baredSC_2d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneXColName 0.5_0_0_0.5_x \
         --geneYColName 0.5_0_0_0.5_y \
         --metadata1ColName group \
@@ -80,7 +80,7 @@ done
 # Redo the plot for splity
 # pdf 0:02:23
 baredSC_2d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneXColName 0.5_0_0_0.5_x \
         --geneYColName 0.5_0_0_0.5_y \
         --metadata1ColName group \
@@ -93,7 +93,7 @@ baredSC_2d \
 # Increase the nb of sample for 3 gauss:
 nnorm=3
 baredSC_2d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneXColName 0.5_0_0_0.5_x \
         --geneYColName 0.5_0_0_0.5_y \
         --metadata1ColName group \
@@ -107,7 +107,7 @@ baredSC_2d \
         --logevidence example/first_example_2d_cellgroup1_1M_${nnorm}gauss_logevid.txt
 
 combineMultipleModels_2d \
-          --input example/nih3t3_generated_2d_2.txt \
+          --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
           --geneXColName 0.5_0_0_0.5_x \
           --geneYColName 0.5_0_0_0.5_y \
           --metadata1ColName group \
@@ -122,7 +122,7 @@ combineMultipleModels_2d \
 # Test:
 # nnorm=1
 # baredSC_2d \
-#         --input example/nih3t3_generated_2d_2.txt \
+#         --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
 #         --geneXColName 0.5_0_0_0.5_x \
 #         --geneYColName 0.5_0_0_0.5_y \
 #         --metadata1ColName group \
