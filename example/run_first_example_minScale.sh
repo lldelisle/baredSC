@@ -3,7 +3,7 @@
 ##############
 nnorm=1
 baredSC_1d \
-            --input example/nih3t3_generated_2d_2.txt \
+            --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
             --metadata1ColName 0.5_0_0_0.5_group \
             --metadata1Values 3.0 \
             --geneColName 0.5_0_0_0.5_x \
@@ -14,7 +14,7 @@ baredSC_1d \
             --title "first gene ${nnorm} gauss group3 minScale 0"
 
 baredSC_1d \
-            --input example/nih3t3_generated_2d_2.txt \
+            --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
             --metadata1ColName 0.5_0_0_0.5_group \
             --metadata1Values 3.0 \
             --geneColName 0.5_0_0_0.5_x \

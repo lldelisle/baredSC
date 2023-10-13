@@ -12,7 +12,7 @@ We generated a example where 2 genes have the same distribution
 (2 gaussians, one of mean 0.375, scale 0.125 and another one of mean 1 and scale 0.1).
 For each gene, half of cells goes in each gaussian.
 The genes are called "0.5_0_0_0.5_x" and "0.5_0_0_0.5_y".
-The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_2d_2.txt>`_.
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/tests/test_data/nih3t3_generated_2d_2.txt>`_.
 
 2d
 --
@@ -26,7 +26,7 @@ To make the example quicker we will run only on the 300 random cells (group1).
 
     $ for nnorm in 1 2 3; do
         baredSC_2d \
-          --input example/nih3t3_generated_2d_2.txt \
+          --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
           --geneXColName 0.5_0_0_0.5_x \
           --geneYColName 0.5_0_0_0.5_y \
           --metadata1ColName group \
@@ -61,7 +61,7 @@ For the demo we will try different values:
 .. code:: bash
 
     $ baredSC_2d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneXColName 0.5_0_0_0.5_x \
         --geneYColName 0.5_0_0_0.5_y \
         --metadata1ColName group \
@@ -98,7 +98,7 @@ You can combine multiple models with ``combineMultipleModels_2d``. By default, n
 .. code:: bash
 
     $ combineMultipleModels_2d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneXColName 0.5_0_0_0.5_x \
         --geneYColName 0.5_0_0_0.5_y \
         --metadata1ColName group \

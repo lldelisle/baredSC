@@ -15,7 +15,7 @@ We took total UMI counts from a real dataset of NIH3T3.
 We generated a example where 2 genes have the same distribution (2 gaussians, one of mean 0.375, scale 0.125 and another one of mean 1 and scale 0.1).
 Half of cells goes in each gaussian.
 The gene is called "0.5_0_0_0.5_x".
-The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/example/nih3t3_generated_2d_2.txt>`_.
+The input table can be downloaded from `here <https://raw.githubusercontent.com/lldelisle/baredSC/master/tests/test_data/nih3t3_generated_2d_2.txt>`_.
 
 Run
 ---
@@ -29,7 +29,7 @@ We keep the default parameters and we set ``--figure`` to get visual outputs:
 .. code:: bash
 
     $ baredSC_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneColName 0.5_0_0_0.5_x \
         --output example/first_example_1d_1gauss \
         --nnorm 1 \
@@ -80,7 +80,7 @@ Now let's try 2 gaussians
 .. code:: bash
 
     $ baredSC_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneColName 0.5_0_0_0.5_x \
         --output example/first_example_1d_2gauss \
         --nnorm 2 \
@@ -131,7 +131,7 @@ Now let's try 3 gaussians
 .. code:: bash
 
     $ baredSC_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneColName 0.5_0_0_0.5_x \
         --output example/first_example_1d_3gauss \
         --nnorm 3 \
@@ -169,7 +169,7 @@ Rerun 3 gauss with more samples
 .. code:: bash
 
     $ baredSC_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneColName 0.5_0_0_0.5_x \
         --output example/first_example_1d_3gauss_1M \
         --nnorm 3 --nsampMCMC 1000000 \
@@ -221,7 +221,7 @@ Another way to use these models is to use samples from all models but using the 
 .. code:: bash
 
     $ combineMultipleModels_1d \
-        --input example/nih3t3_generated_2d_2.txt \
+        --input baredSC/tests/test_data/nih3t3_generated_2d_2.txt \
         --geneColName 0.5_0_0_0.5_x \
         --outputs example/first_example_1d_1gauss \
         example/first_example_1d_2gauss \
