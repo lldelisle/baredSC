@@ -1,6 +1,14 @@
 Releases
 ========
 
+1.1.3
+-----
+
+Bug fix:
+^^^^^^^^
+
+- In 1d when kde could not be computing with recent version of scipy. baredSC was stoped raising a `linalg.LinAlgError`.
+
 1.1.2
 -----
 

@@ -342,7 +342,7 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
     else:
       raise NotImplementedError("Only xscale Seurat and log are implemented.")
     plt.plot(x, density, color='green')
-  except NotImplementedError:
+  except (NotImplementedError, np.linalg.LinAlgError):
     print("Could not compute density from input data.")
   plt.xlim(xmin, xmax)
   plt.ylim(0, )
@@ -418,7 +418,7 @@ def plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target
     else:
       raise NotImplementedError("Only xscale Seurat and log are implemented.")
     plt.plot(x, density, color='green', label='density from data')
-  except NotImplementedError:
+  except (NotImplementedError, np.linalg.LinAlgError):
     print("Could not compute density from input data.")
   # Posterior using full pdf
   plt.plot(x, post_all_cells, color='orange', label='mean post pdf')
