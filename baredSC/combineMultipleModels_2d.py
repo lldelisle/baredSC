@@ -10,7 +10,7 @@ import numpy as np
 
 # Local imports
 from . common import get_bins_centers, \
-  get_Neff, parse_arguments, get_data_from_args
+  get_Neff, common_parse_arguments, get_data_from_args
 from . twod import logprob, extract_from_npz, write_evidence, \
   get_pdf, plots_from_pdf, args_check
 
@@ -136,10 +136,14 @@ def plot_combined(all_results, all_logevid, title, output,
   return None
 
 
+def parse_arguments():
+  return(common_parse_arguments('combineMultipleModels_2d'))
+
+
 def main(args=None):
   """Main function of combineMultipleModels_2d
   """
-  args = parse_arguments('combineMultipleModels_2d').parse_args(args)
+  args = parse_arguments().parse_args(args)
   # Update args and check
   args = args_check(args)
 

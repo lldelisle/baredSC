@@ -9,7 +9,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 
 # Local imports
-from . common import get_bins_centers, parse_arguments, \
+from . common import get_bins_centers, common_parse_arguments, \
   get_data_from_args
 from . oned import logprob, extract_from_npz, write_evidence, \
     get_pdf, plots_from_pdf, args_check
@@ -96,10 +96,14 @@ def plot_combined(all_results, all_logevid, title, output, data, col_gene,
   return None
 
 
+def parse_arguments():
+  return(common_parse_arguments('combineMultipleModels_1d'))
+
+
 def main(args=None):
   """Main function of combineMultipleModels_1d
   """
-  args = parse_arguments('combineMultipleModels_1d').parse_args(args)
+  args = parse_arguments().parse_args(args)
   # Update args and check
   args = args_check(args)
   # Check the directory of args.figure is writtable:

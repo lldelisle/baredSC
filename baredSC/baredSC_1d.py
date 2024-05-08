@@ -13,8 +13,8 @@ from samsam import sam
 
 # Local imports
 from . common import permuted, get_Ax, \
-  plot_QC, get_bins_centers, parse_arguments, checkNeff, args_check_baredSC, \
-  get_data_from_args
+  plot_QC, get_bins_centers, common_parse_arguments, checkNeff, \
+  args_check_baredSC, get_data_from_args
 from . oned import logprob, extract_from_npz, write_evidence, \
   get_pdf, plots_from_pdf, args_check
 
@@ -188,11 +188,15 @@ def plot(oxpdf, x, logprob_values, samples, title, output, data, col_gene,
   plots_from_pdf(x, pdf, title, output, data, col_gene, osampx, xscale, target_sum)
 
 
+def parse_arguments():
+  return(common_parse_arguments('baredSC_1d'))
+
+
 def main(args=None):
   """Main function of baredSC_1d
   """
   original_args = sys.argv[1:]
-  args = parse_arguments('baredSC_1d').parse_args(args)
+  args = parse_arguments().parse_args(args)
   args = args_check_baredSC(args)
   # Update args and check
   args = args_check(args)
