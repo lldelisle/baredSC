@@ -16,26 +16,30 @@ baredSC_1d
 -----------
 
 .. argparse::
-   :ref: baredSC.baredSC_1d.parse_arguments
+   :module: baredSC.baredSC_1d
+   :func: parse_arguments
    :prog: baredSC_1d
 
 combineMultipleModels_1d
 ------------------------
 
 .. argparse::
-   :ref: baredSC.combineMultipleModels_1d.parse_arguments
+   :module: baredSC.combineMultipleModels_1d
+   :func: parse_arguments
    :prog: combineMultipleModels_1d
 
 baredSC_2d
 -----------
 
 .. argparse::
-   :ref: baredSC.baredSC_2d.parse_arguments
+   :module: baredSC.baredSC_2d
+   :func: parse_arguments
    :prog: baredSC_2d
 
 combineMultipleModels_2d
 ------------------------
 
 .. argparse::
-   :ref: baredSC.combineMultipleModels_2d.parse_arguments
+   :module: baredSC.combineMultipleModels_2d
+   :func: parse_arguments
    :prog: combineMultipleModels_2d

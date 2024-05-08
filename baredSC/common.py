@@ -388,7 +388,7 @@ def get_bins_centers(xmin, xmax, nx):
   return (x_borders[:-1] + x_borders[1:]) / 2
 
 
-def parse_arguments(tool: str) -> argparse.ArgumentParser:
+def common_parse_arguments(tool: str) -> argparse.ArgumentParser:
   """Argument parser for all 4 tools
   """
   docu_ref = "The full documentation is available at https://baredsc.readthedocs.io"
