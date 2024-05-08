@@ -3,6 +3,7 @@
 """
 from tempfile import NamedTemporaryFile
 import os.path
+import shutil
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.baredSC_1d
@@ -55,6 +56,14 @@ def test_baredSC_1d_2gauss_log_pdf():
     baredSC.baredSC_1d.main(args)
     for suffix in BARED_1D_IMAGES_SUFFIX:
         expected_file = f'{expected}{suffix}.{extension}'
+        # matplotlib compare on pdf will create a png next to it.
+        # To avoid issues related to write in test_data folder
+        # We copy the expected file into a temporary place
+        new_expected_file = NamedTemporaryFile(suffix='.pdf',
+                                               prefix='pyGenomeTracks_test_',
+                                               delete=False)
+        shutil.copy(expected_file, new_expected_file.name)
+        expected_file = new_expected_file.name
         obtained_file = f'{outfig_base}{suffix}.{extension}'
         res = compare_images(expected_file,
                              obtained_file, TOLERENCE)
