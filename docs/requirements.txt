@@ -9,3 +9,4 @@ sphinx-argparse
 sphinx-autorun
 IPython
 anndata
+pickleshare

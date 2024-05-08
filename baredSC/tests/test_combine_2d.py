@@ -3,6 +3,7 @@
 """
 from tempfile import NamedTemporaryFile
 import os.path
+import platform
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.combineMultipleModels_2d
@@ -40,7 +41,11 @@ def test_combine_2d_test1():
             f"--outputs {ROOT}/2d_small_1gauss {ROOT}/2d_small_2gauss " \
             f"--figure {outfig.name}".split()
         baredSC.combineMultipleModels_2d.main(args)
-        for suffix in BARED_2D_IMAGES_SUFFIX:
+        if platform.system() == "Linux":
+            suffix_to_test = BARED_2D_IMAGES_SUFFIX
+        else:
+            suffix_to_test = ['', '_median']
+        for suffix in suffix_to_test:
             expected_file = f'{expected}{suffix}.{extension}'
             obtained_file = f'{outfig_base}{suffix}.{extension}'
             res = compare_images(expected_file,

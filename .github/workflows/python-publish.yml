@@ -22,22 +22,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+
     steps:
     - uses: actions/checkout@v3
-    - uses: mamba-org/setup-micromamba@main
+    - name: Set up Python
+      uses: actions/setup-python@v3
       with:
-        environment-file: ./baredSC_dev_env.yml
-        cache-downloads: true
-        environment-name: baredSC_dev
-    - name: pip install
+        python-version: '3.10'
+    - name: Install dependencies
       run: |
-        micromamba activate baredSC_dev
+        python -m pip install --upgrade pip
         pip install build
-        pip install .
     - name: Build package
       run: python -m build
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_BAREDSC_API_TOKEN }}
+      uses: pypa/gh-action-pypi-publish@v1.8.14

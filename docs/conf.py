@@ -13,36 +13,10 @@
 
 import os
 import sys
-
-# from unittest.mock import Mock
-
 import warnings
+from importlib.metadata import version
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-sys.path.insert(0, os.path.abspath('../'))
-
-from baredSC._version import __version__
-
-# import mock
-
-# MOCK_MODULES = ['numpy',
-#                  'matplotlib',
-#                  'pandas',
-#                  'itertools',
-#                  'scipy',
-# MOCK_MODULES = ['scaledAdaptiveMetropolis',
-#                 'covarianceImportanceSampling',
-#                 'logpriors',
-#                 'acf',
-#                 'lib.common',
-#                 'lib.oned',
-#                 'lib.twod']
-# MOCK_MODULES = ['samsam']
-# for mod_name in MOCK_MODULES:
-#     sys.modules[mod_name] = Mock()
-
-# autodoc_mock_imports = MOCK_MODULES
 
 # -- Project information -----------------------------------------------------
 
@@ -51,7 +25,7 @@ copyright = '2021, Jean-Baptiste Delisle, Lucille Lopez-Delisle'
 author = 'Jean-Baptiste Delisle, Lucille Lopez-Delisle'
 
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = version('baredSC')
 
 
 # -- General configuration ---------------------------------------------------
@@ -84,4 +58,3 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
