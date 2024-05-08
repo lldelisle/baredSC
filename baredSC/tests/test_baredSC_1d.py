@@ -6,6 +6,7 @@ import os.path
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.baredSC_1d
+import numpy as np
 
 mpl.use('agg')
 
@@ -52,14 +53,18 @@ def test_baredSC_1d_1gauss_default():
         assert res is None, res
 
         os.remove(obtained_file)
-    # for suffix in BARED_1D_TEXT_SUFFIX:
-    #     expected_file = f'{expected}{suffix}'
-    #     obtained_file = f'{outfig_base}{suffix}'
-    #     expected_mat = np.loadtxt(expected_file, skiprows=1)
-    #     obtained_mat = np.loadtxt(obtained_file, skiprows=1)
-    #     assert np.all(np.isclose(obtained_mat, expected_mat))
+    for suffix in BARED_1D_TEXT_SUFFIX:
+        expected_file = f'{expected}{suffix}'
+        obtained_file = f'{outfig_base}{suffix}'
+        if suffix == "_p.txt":
+            use_cols = (1, 2, 3)
+        else:
+            use_cols = None
+        expected_mat = np.loadtxt(expected_file, skiprows=1, usecols=use_cols)
+        obtained_mat = np.loadtxt(obtained_file, skiprows=1, usecols=use_cols)
+        assert np.all(np.isclose(obtained_mat, expected_mat))
 
-    #     os.remove(obtained_file)
+        os.remove(obtained_file)
 
 
 def test_baredSC_1d_2gauss_log_pdf():
@@ -98,11 +103,15 @@ def test_baredSC_1d_2gauss_log_pdf():
         assert res is None, res
 
         os.remove(obtained_file)
-    # for suffix in BARED_1D_TEXT_SUFFIX:
-    #     expected_file = f'{expected}{suffix}'
-    #     obtained_file = f'{outfig_base}{suffix}'
-    #     expected_mat = np.loadtxt(expected_file, skiprows=1)
-    #     obtained_mat = np.loadtxt(obtained_file, skiprows=1)
-    #     assert np.all(np.isclose(obtained_mat, expected_mat))
+    for suffix in BARED_1D_TEXT_SUFFIX:
+        expected_file = f'{expected}{suffix}'
+        obtained_file = f'{outfig_base}{suffix}'
+        if suffix == "_p.txt":
+            use_cols = (1, 2, 3)
+        else:
+            use_cols = None
+        expected_mat = np.loadtxt(expected_file, skiprows=1, usecols=use_cols)
+        obtained_mat = np.loadtxt(obtained_file, skiprows=1, usecols=use_cols)
+        assert np.all(np.isclose(obtained_mat, expected_mat))
 
-    #     os.remove(obtained_file)
+        os.remove(obtained_file)
