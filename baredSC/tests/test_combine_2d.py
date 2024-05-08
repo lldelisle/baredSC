@@ -4,6 +4,7 @@
 from tempfile import NamedTemporaryFile
 import os.path
 import platform
+import shutil
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.combineMultipleModels_2d
@@ -47,6 +48,14 @@ def test_combine_2d_test1():
             suffix_to_test = ['', '_median']
         for suffix in suffix_to_test:
             expected_file = f'{expected}{suffix}.{extension}'
+            # matplotlib compare on pdf will create a png next to it.
+            # To avoid issues related to write in test_data folder
+            # We copy the expected file into a temporary place
+            new_expected_file = NamedTemporaryFile(suffix='.pdf',  # pylint: disable=R1732
+                                                   prefix='baredsc_test_',
+                                                   delete=False)
+            shutil.copy(expected_file, new_expected_file.name)
+            expected_file = new_expected_file.name
             obtained_file = f'{outfig_base}{suffix}.{extension}'
             res = compare_images(expected_file,
                                 obtained_file, TOLERENCE)

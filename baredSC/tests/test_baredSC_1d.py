@@ -3,6 +3,8 @@
 """
 from tempfile import NamedTemporaryFile
 import os.path
+import shutil
+import numpy as np
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.baredSC_1d
@@ -21,7 +23,7 @@ BARED_1D_IMAGES_SUFFIX = ['', '_convergence', '_p', '_corner', '_individuals',
 
 BARED_1D_TEXT_SUFFIX = ['_neff.txt', '_p.txt', '_pdf.txt', '_posterior_per_cell.txt']
 
-TOLERENCE = 18  # default matplotlib pixed difference tolerance
+TOLERENCE = 13  # default matplotlib pixed difference tolerance
 
 
 def test_baredSC_1d_1gauss_default():
@@ -52,14 +54,18 @@ def test_baredSC_1d_1gauss_default():
         assert res is None, res
 
         os.remove(obtained_file)
-    # for suffix in BARED_1D_TEXT_SUFFIX:
-    #     expected_file = f'{expected}{suffix}'
-    #     obtained_file = f'{outfig_base}{suffix}'
-    #     expected_mat = np.loadtxt(expected_file, skiprows=1)
-    #     obtained_mat = np.loadtxt(obtained_file, skiprows=1)
-    #     assert np.all(np.isclose(obtained_mat, expected_mat))
+    for suffix in BARED_1D_TEXT_SUFFIX:
+        expected_file = f'{expected}{suffix}'
+        obtained_file = f'{outfig_base}{suffix}'
+        if suffix == "_p.txt":
+            use_cols = (1, 2, 3)
+        else:
+            use_cols = None
+        expected_mat = np.loadtxt(expected_file, skiprows=1, usecols=use_cols)
+        obtained_mat = np.loadtxt(obtained_file, skiprows=1, usecols=use_cols)
+        assert np.all(np.isclose(obtained_mat, expected_mat))
 
-    #     os.remove(obtained_file)
+        os.remove(obtained_file)
 
 
 def test_baredSC_1d_2gauss_log_pdf():
@@ -92,17 +98,29 @@ def test_baredSC_1d_2gauss_log_pdf():
     baredSC.baredSC_1d.main(args)
     for suffix in BARED_1D_IMAGES_SUFFIX:
         expected_file = f'{expected}{suffix}.{extension}'
+        # matplotlib compare on pdf will create a png next to it.
+        # To avoid issues related to write in test_data folder
+        # We copy the expected file into a temporary place
+        new_expected_file = NamedTemporaryFile(suffix='.pdf',  # pylint: disable=R1732
+                                               prefix='baredsc_test_',
+                                               delete=False)
+        shutil.copy(expected_file, new_expected_file.name)
+        expected_file = new_expected_file.name
         obtained_file = f'{outfig_base}{suffix}.{extension}'
         res = compare_images(expected_file,
                              obtained_file, TOLERENCE)
         assert res is None, res
 
         os.remove(obtained_file)
-    # for suffix in BARED_1D_TEXT_SUFFIX:
-    #     expected_file = f'{expected}{suffix}'
-    #     obtained_file = f'{outfig_base}{suffix}'
-    #     expected_mat = np.loadtxt(expected_file, skiprows=1)
-    #     obtained_mat = np.loadtxt(obtained_file, skiprows=1)
-    #     assert np.all(np.isclose(obtained_mat, expected_mat))
+    for suffix in BARED_1D_TEXT_SUFFIX:
+        expected_file = f'{expected}{suffix}'
+        obtained_file = f'{outfig_base}{suffix}'
+        if suffix == "_p.txt":
+            use_cols = (1, 2, 3)
+        else:
+            use_cols = None
+        expected_mat = np.loadtxt(expected_file, skiprows=1, usecols=use_cols)
+        obtained_mat = np.loadtxt(obtained_file, skiprows=1, usecols=use_cols)
+        assert np.all(np.isclose(obtained_mat, expected_mat))
 
-    #     os.remove(obtained_file)
+        os.remove(obtained_file)

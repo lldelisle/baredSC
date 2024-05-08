@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "baredSC"
+version = "1.1.3"
+authors = [
+  { name = "Lucille Lopez-Delisle, Jean-Baptiste Delisle", email = "lucille.delisle@epfl.ch" }
+]
+description = "baredSC: Bayesian Approach to Retreive Expression Distribution of Single Cell"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering :: Bio-Informatics',
+]
+license = {file = "LICENSE"}
+dependencies = [
+  "numpy >=1.16",
+  "matplotlib >=3.1.1",
+  "pandas >=0.25.0",
+  "scipy >=1.3.0",
+  "corner >=2.0.0",
+  "samsam >=0.1.2",
+  "anndata >=0.7"
+]
+
+[project.scripts]
+baredSC_1d = "baredSC.baredSC_1d:main"
+baredSC_2d = "baredSC.baredSC_2d:main"
+combineMultipleModels_1d = "baredSC.combineMultipleModels_1d:main"
+combineMultipleModels_2d = "baredSC.combineMultipleModels_2d:main"
+
+[project.urls]
+Homepage = "https://github.com/lldelisle/baredSC"
+Documentation = "https://baredsc.readthedocs.io"
+Issues = "https://github.com/lldelisle/baredSC/issues"
+
+[tool.setuptools]
+package-dir = {'baredSC'= 'baredSC'}
