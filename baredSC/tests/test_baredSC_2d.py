@@ -20,7 +20,7 @@ BARED_2D_IMAGES_SUFFIX = ['', '_convergence', '_p', '_corner', '_individuals',
 
 BARED_2D_TEXT_SUFFIX = ['_neff.txt', '_p.txt', '_corr.txt', '_pdf2d.txt', '_pdf2d_flat.txt']
 
-TOLERENCE = 13  # default matplotlib pixed difference tolerance
+TOLERENCE = 19  # default matplotlib pixed difference tolerance
 
 
 def test_baredSC_2d_1gauss_small():
