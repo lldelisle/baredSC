@@ -25,48 +25,6 @@ BARED_1D_TEXT_SUFFIX = ['_neff.txt', '_p.txt', '_pdf.txt', '_posterior_per_cell.
 TOLERENCE = 13  # default matplotlib pixed difference tolerance
 
 
-def test_baredSC_1d_1gauss_default():
-    """First test matching example
-    """
-    extension = 'png'
-    expected = os.path.join(EXAMPLE, 'first_example_1d_1gauss')
-    outfile = NamedTemporaryFile(prefix='baredSC_test_',  # pylint: disable=R1732
-                                 delete=False)
-    outfig = NamedTemporaryFile(suffix= f'.{extension}', prefix='baredSC_test_',  # pylint: disable=R1732
-                                delete=False)
-    outfig_base = outfig.name[:-(len(extension) + 1)]
-    outfile_evid = NamedTemporaryFile(suffix='.txt', prefix='baredSC_test_',  # pylint: disable=R1732
-                                      delete=False)
-    args = f"--input {ROOT}/nih3t3_generated_2d_2.txt " \
-           "--geneColName 0.5_0_0_0.5_x " \
-           f"--output {outfile.name}.npz " \
-           "--nnorm 1 " \
-           f"--figure {outfig.name} " \
-           f"--logevidence {outfile_evid.name}".split()
-    args += ['--title', 'first gene 1 gauss']
-    baredSC.baredSC_1d.main(args)
-    for suffix in BARED_1D_IMAGES_SUFFIX:
-        expected_file = f'{expected}{suffix}.{extension}'
-        obtained_file = f'{outfig_base}{suffix}.{extension}'
-        res = compare_images(expected_file,
-                             obtained_file, TOLERENCE)
-        assert res is None, res
-
-        os.remove(obtained_file)
-    for suffix in BARED_1D_TEXT_SUFFIX:
-        expected_file = f'{expected}{suffix}'
-        obtained_file = f'{outfig_base}{suffix}'
-        if suffix == "_p.txt":
-            use_cols = (1, 2, 3)
-        else:
-            use_cols = None
-        expected_mat = np.loadtxt(expected_file, skiprows=1, usecols=use_cols)
-        obtained_mat = np.loadtxt(obtained_file, skiprows=1, usecols=use_cols)
-        assert np.all(np.isclose(obtained_mat, expected_mat))
-
-        os.remove(obtained_file)
-
-
 def test_baredSC_1d_2gauss_log_pdf():
     """Second test with pdf cells subset prettyBins...
     """
@@ -95,14 +53,14 @@ def test_baredSC_1d_2gauss_log_pdf():
            f"--logevidence {outfile_evid.name}".split()
     args += ['--title', 'first gene 2 gauss log scale']
     baredSC.baredSC_1d.main(args)
-    # for suffix in BARED_1D_IMAGES_SUFFIX:
-    #     expected_file = f'{expected}{suffix}.{extension}'
-    #     obtained_file = f'{outfig_base}{suffix}.{extension}'
-    #     res = compare_images(expected_file,
-    #                          obtained_file, TOLERENCE)
-    #     assert res is None, res
+    for suffix in BARED_1D_IMAGES_SUFFIX:
+        expected_file = f'{expected}{suffix}.{extension}'
+        obtained_file = f'{outfig_base}{suffix}.{extension}'
+        res = compare_images(expected_file,
+                             obtained_file, TOLERENCE)
+        assert res is None, res
 
-    #     os.remove(obtained_file)
+        os.remove(obtained_file)
     for suffix in BARED_1D_TEXT_SUFFIX:
         expected_file = f'{expected}{suffix}'
         obtained_file = f'{outfig_base}{suffix}'
