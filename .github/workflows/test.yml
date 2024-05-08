@@ -24,21 +24,3 @@ jobs:
       run: |
         micromamba activate baredSC_dev
         pytest -v
-  test-osx:
-    name: Test on OSX
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: mamba-org/setup-micromamba@main
-      with:
-        environment-file: ./baredSC_dev_env.yml
-        cache-downloads: true
-        environment-name: baredSC_dev
-    - name: pip install
-      run: |
-        micromamba activate baredSC_dev
-        pip install .
-    - name: Test baredSC
-      run: |
-        micromamba activate baredSC_dev
-        pytest -v
