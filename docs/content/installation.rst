@@ -7,16 +7,14 @@ Installation
 Requirements
 ------------
 
-It as only been tested on linux but should work on MacOS.
-
-It requires python >= 3.7 (tested 3.7.3 and 3.9.1)
+It requires python >= 3.8
 
 Dependencies of classical python packages:
 
-* numpy (tested 1.16.4 and 1.19.5)
-* matplotlib (tested 3.1.1 and 3.3.4)
-* pandas (tested 0.25.0 and 1.2.1)
-* scipy (tested 1.3.0 and 1.6.0)
+* numpy
+* matplotlib
+* pandas
+* scipy
 
 Dependencies of a python package from Jean-Baptiste Delisle dedicated to mcmc:
 

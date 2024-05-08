@@ -7,6 +7,7 @@ import os
 import time
 from tempfile import NamedTemporaryFile
 from shutil import copy
+from importlib.metadata import version
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -15,8 +16,6 @@ from scipy.stats import poisson
 from scipy.sparse import issparse
 import anndata
 from samsam import acf
-
-from . _version import __version__
 
 mpl.use('agg')
 
@@ -592,7 +591,7 @@ def parse_arguments(tool: str) -> argparse.ArgumentParser:
                             help="Size of sampling of random parameters in logevidence evaluation.")
   # Version
   argp.add_argument('--version', action='version',
-                    version=__version__)
+                    version=version('baredSC'))
   return argp
 
 
