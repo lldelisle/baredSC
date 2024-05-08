@@ -2,7 +2,7 @@
 # `conda activate baredSC_dev`
 # Then you need to install baredSC with `pip install .`
 # Then you can make the doc with cd docs && make html
-# Create the package by `python setup.py sdist`
+# Create the package by `python -m build`
 # Upload it with `python3 -m twine upload dist/*`
 name: baredSC_dev
 channels:
@@ -18,6 +18,7 @@ dependencies:
    - samsam 
    - ipython # For the doc
    - sphinx-argparse # For the doc
+   - build # For the upload
    - twine # For the upload
    - pytest
    - pip
