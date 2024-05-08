@@ -20,7 +20,9 @@ dependencies:
    - sphinx-argparse # For the doc
    - build # For the upload
    - twine # For the upload
-   - pytest
+   - pytest # For the tests
+   - nose # For the tests
+   - ghostscript # For the tests
    - pip
    - pip:
       - sphinx-autorun # For the doc

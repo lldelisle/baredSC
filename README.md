@@ -13,4 +13,4 @@ Visit [our documentation](https://baredsc.readthedocs.io) to see the possible op
 Citation
 --------
 
-If you are using baredSC, please cite our [biorxiv paper](https://doi.org/10.1101/2021.05.26.445740).
+If you are using baredSC, please cite our [paper in BMC bioinformatics](https://doi.org/10.1186/s12859-021-04507-8).

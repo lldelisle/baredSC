@@ -1,6 +1,26 @@
 Releases
 ========
 
+1.1.4
+-----
+
+Dependency change:
+^^^^^^^^^^^^^^^^^^
+
+Drop support for python 3.7
+
+Bug fix:
+^^^^^^^^
+
+Fix documentation on readthedocs
+
+Other:
+^^^^^^
+
+- Use pyproject.toml instead of setup.py
+- Remove the ``__version__`` attribute
+
+
 1.1.3
 -----
 

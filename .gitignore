@@ -3,7 +3,7 @@
 
 # pycache
 baredSC/__pycache__
-baredSC/lib/__pycache__
+baredSC/tests/__pycache__
 
 # build
 build
