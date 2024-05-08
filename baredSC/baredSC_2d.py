@@ -3,6 +3,7 @@
 Runner for baredSC_2d
 """
 
+import argparse
 import sys
 import os
 from itertools import permutations
@@ -14,8 +15,8 @@ from samsam import sam
 
 # Local imports
 from . common import permuted, get_Ax, get_prefix_suffix, \
-  plot_QC, get_bins_centers, parse_arguments, checkNeff, args_check_baredSC, \
-  get_data_from_args
+  plot_QC, get_bins_centers, common_parse_arguments, checkNeff, \
+  args_check_baredSC, get_data_from_args
 from . twod import logprob, extract_from_npz, write_evidence, \
   get_pdf, plots_from_pdf, args_check
 
@@ -289,11 +290,17 @@ def plot(oxpdf, oypdf, x, y, logprob_values, samples,
                  Neff)
 
 
+def parse_arguments() -> argparse.ArgumentParser:
+  """Argument parser for baredSC_2d
+  """
+  return common_parse_arguments('baredSC_2d')
+
+
 def main(args=None):
   """Main function of baredSC_2d
   """
   original_args = sys.argv[1:]
-  args = parse_arguments('baredSC_2d').parse_args(args)
+  args = parse_arguments().parse_args(args)
   args = args_check_baredSC(args)
   # Update args and check
   args = args_check(args)
