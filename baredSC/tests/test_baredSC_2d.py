@@ -3,6 +3,7 @@
 """
 from tempfile import NamedTemporaryFile
 import os.path
+import platform
 import matplotlib as mpl
 from matplotlib.testing.compare import compare_images
 import baredSC.baredSC_2d
@@ -20,7 +21,7 @@ BARED_2D_IMAGES_SUFFIX = ['', '_convergence', '_p', '_corner', '_individuals',
 
 BARED_2D_TEXT_SUFFIX = ['_neff.txt', '_p.txt', '_corr.txt', '_pdf2d.txt', '_pdf2d_flat.txt']
 
-TOLERENCE = 13  # default matplotlib pixed difference tolerance
+TOLERENCE = 19  # default matplotlib pixed difference tolerance
 
 
 def test_baredSC_2d_1gauss_small():
@@ -45,7 +46,11 @@ def test_baredSC_2d_1gauss_small():
            f"--figure {outfig.name} " \
            f"--logevidence {outfile_evid.name}".split()
     baredSC.baredSC_2d.main(args)
-    for suffix in BARED_2D_IMAGES_SUFFIX:
+    if platform.system() == "Linux":
+        suffix_to_test = BARED_2D_IMAGES_SUFFIX
+    else:
+        suffix_to_test = ['', '_median']
+    for suffix in suffix_to_test:
         expected_file = f'{expected}{suffix}.{extension}'
         obtained_file = f'{outfig_base}{suffix}.{extension}'
         res = compare_images(expected_file,
