@@ -3,6 +3,7 @@
 Runner for baredSC_2d
 """
 
+import argparse
 import sys
 import os
 from itertools import permutations
@@ -289,8 +290,10 @@ def plot(oxpdf, oypdf, x, y, logprob_values, samples,
                  Neff)
 
 
-def parse_arguments():
-  return(common_parse_arguments('baredSC_2d'))
+def parse_arguments() -> argparse.ArgumentParser:
+  """Argument parser for baredSC_2d
+  """
+  return common_parse_arguments('baredSC_2d')
 
 
 def main(args=None):

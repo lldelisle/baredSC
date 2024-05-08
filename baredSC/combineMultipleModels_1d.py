@@ -2,6 +2,7 @@
 """
 Runner for combineMultipleModels_1d
 """
+import argparse
 import sys
 import os
 from tempfile import NamedTemporaryFile
@@ -96,8 +97,10 @@ def plot_combined(all_results, all_logevid, title, output, data, col_gene,
   return None
 
 
-def parse_arguments():
-  return(common_parse_arguments('combineMultipleModels_1d'))
+def parse_arguments() -> argparse.ArgumentParser:
+  """Argument parser for combineMultipleModels_1d
+  """
+  return common_parse_arguments('combineMultipleModels_1d')
 
 
 def main(args=None):
